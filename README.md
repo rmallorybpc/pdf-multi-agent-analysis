@@ -13,6 +13,7 @@ Important scope: there is no initial OpenAI-trained primary analysis stage. The 
 - Converted markdown: `rfp-markdown/`
 - Final generated outputs: `rfp-markdown/generated/`
 - Audit artifacts per run: `rfp-markdown/audit/`
+- Optional analysis references: `assets/`
 
 ## Local setup
 
@@ -126,6 +127,13 @@ Commit behavior:
 
 - Non-dry runs commit generated outputs only when changed.
 - If automated push is blocked by permissions/protection, workflow writes manual commit instructions artifact.
+
+Reference assets behavior:
+
+- If `assets/` exists, workflow appends it to run context.
+- Text-like files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`) are inlined.
+- PDF files are text-extracted when `pdftotext` is available on runner.
+- Binary/unsupported files are listed as references with placeholder notes.
 
 ## Required secrets
 

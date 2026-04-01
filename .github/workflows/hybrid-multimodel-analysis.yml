@@ -97,6 +97,33 @@ jobs:
             done < <(find knowledge/formatting -type f -name '*.md' | sort)
           fi
 
+          if [[ -d assets ]]; then
+            echo "" >> "$context_file"
+            echo "# assets" >> "$context_file"
+            while IFS= read -r f; do
+              echo "" >> "$context_file"
+              echo "## $f" >> "$context_file"
+              case "$f" in
+                *.md|*.txt|*.json|*.yaml|*.yml)
+                  cat "$f" >> "$context_file"
+                  ;;
+                *.pdf)
+                  if command -v pdftotext >/dev/null 2>&1; then
+                    pdftotext "$f" - 2>/dev/null | sed '/^\s*$/d' | head -n 400 >> "$context_file" || true
+                  else
+                    echo "[binary PDF reference file present; pdftotext not available]" >> "$context_file"
+                  fi
+                  ;;
+                *.docx)
+                  echo "[binary DOCX reference file present; conversion tool not configured in workflow]" >> "$context_file"
+                  ;;
+                *)
+                  echo "[binary or unsupported reference file type]" >> "$context_file"
+                  ;;
+              esac
+            done < <(find assets -type f | sort)
+          fi
+
       - name: Run critique, refine, and formatting stages
         if: steps.prep.outputs.target_count != '0'
         run: |
