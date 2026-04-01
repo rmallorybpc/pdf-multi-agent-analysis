@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdf-multi-agent-analysis"
+version = "0.1.0"
+description = "Reference scaffold for PDF to markdown conversion and multi-agent analysis"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pypdf>=4.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2.0",
+]
+
+[project.scripts]
+pdf-multi-agent-analysis = "pdf_multi_agent_analysis.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
