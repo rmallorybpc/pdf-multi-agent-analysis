@@ -1,0 +1,257 @@
+name: hybrid-multimodel-analysis
+
+on:
+  push:
+    paths:
+      - rfp-markdown/**/*.md
+    paths-ignore:
+      - rfp-markdown/generated/**/*.md
+      - rfp-markdown/audit/**
+  workflow_dispatch:
+    inputs:
+      file_path:
+        description: Optional markdown path to process
+        required: false
+        type: string
+      uploads_glob:
+        description: Optional additional markdown glob for manual runs
+        required: false
+        type: string
+      dry_run:
+        description: Skip external model calls and produce deterministic placeholders
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure output directories
+        run: |
+          set -euo pipefail
+          mkdir -p rfp-markdown/generated
+          mkdir -p rfp-markdown/audit
+          mkdir -p .tmp
+
+      - name: Resolve targets and runtime mode
+        id: prep
+        run: |
+          set -euo pipefail
+          : > .tmp/targets.txt
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ -n "${{ inputs.file_path }}" ]]; then
+              echo "${{ inputs.file_path }}" >> .tmp/targets.txt
+            elif [[ -n "${{ inputs.uploads_glob }}" ]]; then
+              compgen -G "${{ inputs.uploads_glob }}" >> .tmp/targets.txt || true
+            else
+              find rfp-markdown -type f -name '*.md' ! -path 'rfp-markdown/generated/*' ! -path 'rfp-markdown/audit/*' | sort >> .tmp/targets.txt
+            fi
+            echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
+          else
+            git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -E '^rfp-markdown/.+\.md$' | grep -Ev '^rfp-markdown/(generated|audit)/' | sort >> .tmp/targets.txt || true
+            echo "dry_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          sort -u .tmp/targets.txt -o .tmp/targets.txt || true
+          grep -E '^rfp-markdown/.+\.md$' .tmp/targets.txt > .tmp/targets.filtered.txt || true
+          mv .tmp/targets.filtered.txt .tmp/targets.txt || true
+
+          run_dir="rfp-markdown/audit/${{ github.run_id }}-${{ github.run_attempt }}"
+          mkdir -p "$run_dir"
+          echo "run_dir=$run_dir" >> "$GITHUB_OUTPUT"
+
+          target_count="$(wc -l < .tmp/targets.txt | tr -d ' ')"
+          echo "target_count=$target_count" >> "$GITHUB_OUTPUT"
+
+          context_file="$run_dir/knowledge-context.md"
+          : > "$context_file"
+          if [[ -d knowledge/rfp ]]; then
+            echo "# knowledge/rfp" >> "$context_file"
+            while IFS= read -r f; do
+              echo "" >> "$context_file"
+              echo "## $f" >> "$context_file"
+              cat "$f" >> "$context_file"
+            done < <(find knowledge/rfp -type f -name '*.md' | sort)
+          fi
+          if [[ -d knowledge/formatting ]]; then
+            echo "" >> "$context_file"
+            echo "# knowledge/formatting" >> "$context_file"
+            while IFS= read -r f; do
+              echo "" >> "$context_file"
+              echo "## $f" >> "$context_file"
+              cat "$f" >> "$context_file"
+            done < <(find knowledge/formatting -type f -name '*.md' | sort)
+          fi
+
+      - name: Run critique, refine, and formatting stages
+        if: steps.prep.outputs.target_count != '0'
+        run: |
+          set -euo pipefail
+
+          DRY_RUN="${{ steps.prep.outputs.dry_run }}"
+          RUN_DIR="${{ steps.prep.outputs.run_dir }}"
+          MODEL="${OPENAI_MODEL:-gpt-4.1-mini}"
+          CONTEXT_FILE="$RUN_DIR/knowledge-context.md"
+          LAST_SUCCESS="$CONTEXT_FILE"
+          echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+
+          if [[ "$DRY_RUN" != "true" ]] && [[ -z "${OPENAI_API_KEY:-}" ]]; then
+            echo "OPENAI_API_KEY is required for non-dry runs" >&2
+            exit 1
+          fi
+
+          echo "::add-mask::${OPENAI_API_KEY:-}"
+
+          call_model() {
+            local stage_name="$1"
+            local prompt="$2"
+            local input_file="$3"
+            local payload_file="$4"
+            local raw_file="$5"
+            local out_file="$6"
+            local target_path="$7"
+
+            TARGET_PATH="$target_path" STAGE_PROMPT="$prompt" INPUT_FILE="$input_file" CONTEXT_FILE="$CONTEXT_FILE" PAYLOAD_FILE="$payload_file" MODEL="$MODEL" node -e "const fs=require('fs'); const payload={model:process.env.MODEL,temperature:0.2,messages:[{role:'system',content:process.env.STAGE_PROMPT},{role:'user',content:'Target: '+process.env.TARGET_PATH+'\\n\\nKnowledge context:\\n'+fs.readFileSync(process.env.CONTEXT_FILE,'utf8')+'\\n\\nMarkdown:\\n'+fs.readFileSync(process.env.INPUT_FILE,'utf8')}]}; fs.writeFileSync(process.env.PAYLOAD_FILE, JSON.stringify(payload,null,2));"
+
+            curl -sS https://api.openai.com/v1/chat/completions \
+              -H "Authorization: Bearer $OPENAI_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d @"$payload_file" > "$raw_file"
+
+            RAW_FILE="$raw_file" OUT_FILE="$out_file" node -e "const fs=require('fs'); const raw=JSON.parse(fs.readFileSync(process.env.RAW_FILE,'utf8')); const content=raw&&raw.choices&&raw.choices[0]&&raw.choices[0].message&&raw.choices[0].message.content; if(!content||typeof content!=='string'){console.error('Stage response missing message content'); process.exit(1);} fs.writeFileSync(process.env.OUT_FILE, content.endsWith('\\n')?content:content+'\\n');"
+          }
+
+          if ! while IFS= read -r target; do
+            [[ -z "$target" ]] && continue
+            [[ ! -f "$target" ]] && continue
+
+            stem="$(basename "$target" .md)"
+            case_dir="$RUN_DIR/$stem"
+            mkdir -p "$case_dir/stage-a" "$case_dir/stage-b" "$case_dir/stage-c"
+
+            cp "$target" "$case_dir/original.md"
+            LAST_SUCCESS="$case_dir/original.md"
+            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+
+            stage_a_md="$case_dir/stage-a/output.md"
+            stage_b_md="$case_dir/stage-b/output.md"
+            stage_c_md="$case_dir/stage-c/output.md"
+
+            if [[ "$DRY_RUN" == "true" ]]; then
+              cp "$case_dir/original.md" "$stage_a_md"
+              cp "$stage_a_md" "$stage_b_md"
+              cp "$stage_b_md" "$stage_c_md"
+
+              printf '{"dry_run":true,"stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
+              printf '{"dry_run":true,"stage":"B","target":"%s"}\n' "$target" > "$case_dir/stage-b/request.json"
+              printf '{"dry_run":true,"stage":"C","target":"%s"}\n' "$target" > "$case_dir/stage-c/request.json"
+
+              printf '{"message":"dry-run placeholder: copied original into stage A"}\n' > "$case_dir/stage-a/raw-response.json"
+              printf '{"message":"dry-run placeholder: copied stage A into stage B"}\n' > "$case_dir/stage-b/raw-response.json"
+              printf '{"message":"dry-run placeholder: copied stage B into stage C"}\n' > "$case_dir/stage-c/raw-response.json"
+            else
+              call_model "stage-a" "You are the critique/revision agent. Improve clarity, identify weak claims, and propose concrete revisions while preserving markdown structure." "$case_dir/original.md" "$case_dir/stage-a/request.json" "$case_dir/stage-a/raw-response.json" "$stage_a_md" "$target"
+              LAST_SUCCESS="$stage_a_md"
+              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+
+              call_model "stage-b" "You are the executive refinement agent. Rewrite for executive readability, concise tone, and decision-ready framing." "$stage_a_md" "$case_dir/stage-b/request.json" "$case_dir/stage-b/raw-response.json" "$stage_b_md" "$target"
+              LAST_SUCCESS="$stage_b_md"
+              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+
+              call_model "stage-c" "You are the markdown formatting agent. Return polished, consistently structured markdown suitable for final delivery." "$stage_b_md" "$case_dir/stage-c/request.json" "$case_dir/stage-c/raw-response.json" "$stage_c_md" "$target"
+              LAST_SUCCESS="$stage_c_md"
+              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+            fi
+
+            final_out="rfp-markdown/generated/${stem}-final.md"
+            cp "$stage_c_md" "$final_out"
+            LAST_SUCCESS="$final_out"
+            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+
+            summary="$case_dir/run-summary.md"
+            {
+              echo '# Run Summary'
+              echo ''
+              echo "- target: $target"
+              echo "- dry_run: $DRY_RUN"
+              echo "- stage_a_output: $stage_a_md"
+              echo "- stage_b_output: $stage_b_md"
+              echo "- stage_c_output: $stage_c_md"
+              echo "- final_output: $final_out"
+              echo "- last_success_artifact: $LAST_SUCCESS"
+            } > "$summary"
+          done < .tmp/targets.txt; then
+            echo "Pipeline failed. Last successful artifact: $(cat "$RUN_DIR/last-success-artifact.txt")" > "$RUN_DIR/failure-summary.txt"
+            exit 1
+          fi
+
+      - name: Commit generated outputs when changed
+        if: steps.prep.outputs.target_count != '0' && steps.prep.outputs.dry_run != 'true'
+        run: |
+          set -euo pipefail
+          RUN_DIR="${{ steps.prep.outputs.run_dir }}"
+
+          if git diff --quiet -- rfp-markdown/generated; then
+            echo "No generated markdown changes to commit."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rfp-markdown/generated
+
+          if ! git commit -m "chore(refinement): update generated markdown outputs"; then
+            echo "Generated files unchanged at commit time."
+            exit 0
+          fi
+
+          if ! git push; then
+            manual="$RUN_DIR/manual-commit-instructions.md"
+            {
+              echo '# Manual Commit Required'
+              echo ''
+              echo 'Automated push failed (likely branch protection or token permissions).'
+              echo ''
+              echo 'Run these commands locally:'
+              echo ''
+              echo 'git checkout ${{ github.ref_name }}'
+              echo 'git pull'
+              echo 'git add rfp-markdown/generated'
+              echo 'git commit -m "chore(refinement): update generated markdown outputs"'
+              echo 'git push'
+            } > "$manual"
+          fi
+
+      - name: Upload audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: refinement-audit-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.prep.outputs.run_dir }}
+          if-no-files-found: warn
+
+      - name: Fail with precise last-success message
+        if: failure()
+        run: |
+          set -euo pipefail
+          RUN_DIR="${{ steps.prep.outputs.run_dir }}"
+          if [[ -f "$RUN_DIR/failure-summary.txt" ]]; then
+            cat "$RUN_DIR/failure-summary.txt" >&2
+          else
+            echo "Pipeline failed before artifact tracking initialized." >&2
+          fi
+          exit 1

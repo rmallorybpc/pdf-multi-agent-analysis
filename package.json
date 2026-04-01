@@ -1,0 +1,12 @@
+{
+  "name": "pdf-multi-agent-analysis",
+  "version": "0.2.0",
+  "private": true,
+  "description": "PDF to markdown conversion with OCR fallback and multi-agent refinement workflows",
+  "scripts": {
+    "convert:pdf": "node convert-pdf-to-markdown.js"
+  },
+  "dependencies": {
+    "pdf-parse": "^1.1.1"
+  }
+}

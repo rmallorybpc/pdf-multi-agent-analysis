@@ -1,0 +1,131 @@
+name: convert-rfp-pdf-to-markdown
+
+on:
+  push:
+    paths:
+      - rfp-pdfs/**/*.pdf
+  workflow_dispatch:
+    inputs:
+      pdf_path:
+        description: Optional single PDF path or directory under rfp-pdfs/
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  convert:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          npm ci
+
+      - name: Install OCR tools
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils tesseract-ocr
+
+      - name: Detect changed and deleted PDFs
+        id: diff
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp
+          : > .tmp/changed_pdfs.txt
+          : > .tmp/deleted_pdfs.txt
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ -n "${{ inputs.pdf_path }}" ]]; then
+              echo "${{ inputs.pdf_path }}" > .tmp/changed_pdfs.txt
+            else
+              find rfp-pdfs -type f -iname '*.pdf' | sort > .tmp/changed_pdfs.txt || true
+            fi
+          else
+            before="${{ github.event.before }}"
+            after="${{ github.sha }}"
+            git diff --name-status "$before" "$after" > .tmp/name_status.all.txt || true
+            grep -E '^([AMDR]|R[0-9]+)[[:space:]]+rfp-pdfs/.+\.pdf([[:space:]]+rfp-pdfs/.+\.pdf)?$' .tmp/name_status.all.txt > .tmp/name_status.txt || true
+
+            while IFS=$'\t' read -r status p1 p2; do
+              [[ -z "${status:-}" ]] && continue
+              case "$status" in
+                A|M)
+                  echo "$p1" >> .tmp/changed_pdfs.txt
+                  ;;
+                R*)
+                  echo "$p2" >> .tmp/changed_pdfs.txt
+                  echo "$p1" >> .tmp/deleted_pdfs.txt
+                  ;;
+                D)
+                  echo "$p1" >> .tmp/deleted_pdfs.txt
+                  ;;
+              esac
+            done < .tmp/name_status.txt
+
+            sort -u .tmp/changed_pdfs.txt -o .tmp/changed_pdfs.txt || true
+            sort -u .tmp/deleted_pdfs.txt -o .tmp/deleted_pdfs.txt || true
+          fi
+
+          echo "changed_count=$(wc -l < .tmp/changed_pdfs.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+          echo "deleted_count=$(wc -l < .tmp/deleted_pdfs.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
+
+      - name: Convert changed PDFs
+        if: steps.diff.outputs.changed_count != '0'
+        run: |
+          set -euo pipefail
+          while IFS= read -r pdf_path; do
+            [[ -z "$pdf_path" ]] && continue
+            if [[ -f "$pdf_path" || -d "$pdf_path" ]]; then
+              node convert-pdf-to-markdown.js "$pdf_path" --ocr-fallback --min-text-chars 400
+            fi
+          done < .tmp/changed_pdfs.txt
+
+      - name: Remove markdown for deleted PDFs
+        if: steps.diff.outputs.deleted_count != '0'
+        run: |
+          set -euo pipefail
+          while IFS= read -r deleted_pdf; do
+            [[ -z "$deleted_pdf" ]] && continue
+            rel="${deleted_pdf#rfp-pdfs/}"
+            md="rfp-markdown/${rel%.pdf}.md"
+            if [[ -f "$md" ]]; then
+              rm -f "$md"
+              echo "removed: $md"
+            fi
+          done < .tmp/deleted_pdfs.txt
+
+      - name: Commit conversion changes
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- rfp-markdown; then
+            echo "No markdown changes detected."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add rfp-markdown
+          git commit -m "chore(conversion): sync markdown from PDF changes"
+          git push
+
+      - name: Summary
+        if: always()
+        run: |
+          set -euo pipefail
+          echo "Changed PDFs: ${{ steps.diff.outputs.changed_count }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Deleted PDFs: ${{ steps.diff.outputs.deleted_count }}" >> "$GITHUB_STEP_SUMMARY"
