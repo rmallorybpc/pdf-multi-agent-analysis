@@ -131,9 +131,11 @@ Commit behavior:
 Reference assets behavior:
 
 - If `assets/` exists, workflow appends it to run context.
-- Text-like files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`) are inlined.
-- PDF files are text-extracted when `pdftotext` is available on runner.
-- Binary/unsupported files are listed as references with placeholder notes.
+- Assets are preprocessed into audit cache files under `rfp-markdown/audit/<run-id>/assets-cache/`.
+- Text-like files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`) are copied into cache text artifacts.
+- PDF files are text-extracted into cache artifacts when `pdftotext` is available.
+- DOCX files are extracted when `docx2txt` is available; otherwise a placeholder note is written.
+- Binary/unsupported files are represented with placeholder notes so references remain traceable.
 
 ## Required secrets
 

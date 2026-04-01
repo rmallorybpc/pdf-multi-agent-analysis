@@ -97,32 +97,74 @@ jobs:
             done < <(find knowledge/formatting -type f -name '*.md' | sort)
           fi
 
-          if [[ -d assets ]]; then
-            echo "" >> "$context_file"
-            echo "# assets" >> "$context_file"
-            while IFS= read -r f; do
-              echo "" >> "$context_file"
-              echo "## $f" >> "$context_file"
-              case "$f" in
-                *.md|*.txt|*.json|*.yaml|*.yml)
-                  cat "$f" >> "$context_file"
-                  ;;
-                *.pdf)
-                  if command -v pdftotext >/dev/null 2>&1; then
-                    pdftotext "$f" - 2>/dev/null | sed '/^\s*$/d' | head -n 400 >> "$context_file" || true
-                  else
-                    echo "[binary PDF reference file present; pdftotext not available]" >> "$context_file"
-                  fi
-                  ;;
-                *.docx)
-                  echo "[binary DOCX reference file present; conversion tool not configured in workflow]" >> "$context_file"
-                  ;;
-                *)
-                  echo "[binary or unsupported reference file type]" >> "$context_file"
-                  ;;
-              esac
-            done < <(find assets -type f | sort)
+          # Assets are preprocessed in a dedicated cache step and appended to this context file.
+
+      - name: Cache assets references for analysis context
+        run: |
+          set -euo pipefail
+          RUN_DIR="${{ steps.prep.outputs.run_dir }}"
+          CONTEXT_FILE="$RUN_DIR/knowledge-context.md"
+          CACHE_DIR="$RUN_DIR/assets-cache"
+          INDEX_FILE="$CACHE_DIR/assets-index.md"
+
+          mkdir -p "$CACHE_DIR"
+          : > "$INDEX_FILE"
+
+          if [[ ! -d assets ]]; then
+            exit 0
           fi
+
+          echo "# assets cache" >> "$INDEX_FILE"
+
+          while IFS= read -r src; do
+            rel="${src#assets/}"
+            safe="${rel//\//__}"
+            out="$CACHE_DIR/${safe}.txt"
+
+            {
+              echo "# source: $src"
+              echo ""
+            } > "$out"
+
+            case "$src" in
+              *.md|*.txt|*.json|*.yaml|*.yml)
+                cat "$src" >> "$out"
+                ;;
+              *.pdf)
+                if command -v pdftotext >/dev/null 2>&1; then
+                  pdftotext "$src" - 2>/dev/null | sed '/^\s*$/d' | head -n 800 >> "$out" || true
+                else
+                  echo "[pdf reference present; pdftotext unavailable on runner]" >> "$out"
+                fi
+                ;;
+              *.docx)
+                if command -v docx2txt >/dev/null 2>&1; then
+                  docx2txt "$src" - 2>/dev/null | head -n 800 >> "$out" || true
+                else
+                  echo "[docx reference present; docx2txt unavailable on runner]" >> "$out"
+                fi
+                ;;
+              *)
+                echo "[unsupported/binary reference file type]" >> "$out"
+                ;;
+            esac
+
+            echo "- $src -> ${out#${RUN_DIR}/}" >> "$INDEX_FILE"
+          done < <(find assets -type f | sort)
+
+          {
+            echo ""
+            echo "# assets"
+            echo ""
+            cat "$INDEX_FILE"
+            echo ""
+          } >> "$CONTEXT_FILE"
+
+          while IFS= read -r cached; do
+            echo "" >> "$CONTEXT_FILE"
+            echo "## cached: ${cached#${RUN_DIR}/}" >> "$CONTEXT_FILE"
+            cat "$cached" >> "$CONTEXT_FILE"
+          done < <(find "$CACHE_DIR" -type f -name '*.txt' | sort)
 
       - name: Run critique, refine, and formatting stages
         if: steps.prep.outputs.target_count != '0'
