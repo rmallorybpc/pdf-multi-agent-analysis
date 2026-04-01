@@ -18,7 +18,7 @@ on:
         required: false
         type: string
       dry_run:
-        description: Skip external model calls and produce deterministic placeholders
+        description: Use placeholder copy-only processing instead of local deterministic transforms
         required: false
         default: true
         type: boolean
@@ -30,9 +30,6 @@ jobs:
   refine:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      OPENAI_MODEL: ${{ secrets.OPENAI_MODEL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -173,35 +170,73 @@ jobs:
 
           DRY_RUN="${{ steps.prep.outputs.dry_run }}"
           RUN_DIR="${{ steps.prep.outputs.run_dir }}"
-          MODEL="${OPENAI_MODEL:-gpt-4.1-mini}"
           CONTEXT_FILE="$RUN_DIR/knowledge-context.md"
           LAST_SUCCESS="$CONTEXT_FILE"
           echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
-          if [[ "$DRY_RUN" != "true" ]] && [[ -z "${OPENAI_API_KEY:-}" ]]; then
-            echo "OPENAI_API_KEY is required for non-dry runs" >&2
-            exit 1
-          fi
+          transform_stage_a() {
+            local in_file="$1"
+            local out_file="$2"
+            {
+              echo "## Stage A Critique"
+              echo ""
+              echo "- Local deterministic review"
+              echo "- Flags TODO/TBD/FIXME markers"
+              echo ""
+              awk '{
+                if ($0 ~ /(TODO|TBD|FIXME)/) {
+                  print "[FLAG] " $0
+                } else {
+                  print $0
+                }
+              }' "$in_file"
+              echo ""
+              echo "### Stage A Notes"
+              echo "- Lines: $(wc -l < "$in_file" | tr -d ' ')"
+              echo "- Flags: $(grep -Eic 'TODO|TBD|FIXME' "$in_file" || true)"
+            } > "$out_file"
+          }
 
-          echo "::add-mask::${OPENAI_API_KEY:-}"
+          transform_stage_b() {
+            local in_file="$1"
+            local out_file="$2"
+            {
+              echo "## Stage B Executive Refinement"
+              echo ""
+              echo "### Executive Summary"
+              awk 'NF > 0 { print "- " $0; c += 1; if (c >= 8) exit }' "$in_file"
+              echo ""
+              echo "### Refined Body"
+              awk '{
+                line=$0
+                gsub(/^\[FLAG\][[:space:]]*/, "", line)
+                print line
+              }' "$in_file"
+            } > "$out_file"
+          }
 
-          call_model() {
-            local stage_name="$1"
-            local prompt="$2"
-            local input_file="$3"
-            local payload_file="$4"
-            local raw_file="$5"
-            local out_file="$6"
-            local target_path="$7"
-
-            TARGET_PATH="$target_path" STAGE_PROMPT="$prompt" INPUT_FILE="$input_file" CONTEXT_FILE="$CONTEXT_FILE" PAYLOAD_FILE="$payload_file" MODEL="$MODEL" node -e "const fs=require('fs'); const payload={model:process.env.MODEL,temperature:0.2,messages:[{role:'system',content:process.env.STAGE_PROMPT},{role:'user',content:'Target: '+process.env.TARGET_PATH+'\\n\\nKnowledge context:\\n'+fs.readFileSync(process.env.CONTEXT_FILE,'utf8')+'\\n\\nMarkdown:\\n'+fs.readFileSync(process.env.INPUT_FILE,'utf8')}]}; fs.writeFileSync(process.env.PAYLOAD_FILE, JSON.stringify(payload,null,2));"
-
-            curl -sS https://api.openai.com/v1/chat/completions \
-              -H "Authorization: Bearer $OPENAI_API_KEY" \
-              -H "Content-Type: application/json" \
-              -d @"$payload_file" > "$raw_file"
-
-            RAW_FILE="$raw_file" OUT_FILE="$out_file" node -e "const fs=require('fs'); const raw=JSON.parse(fs.readFileSync(process.env.RAW_FILE,'utf8')); const content=raw&&raw.choices&&raw.choices[0]&&raw.choices[0].message&&raw.choices[0].message.content; if(!content||typeof content!=='string'){console.error('Stage response missing message content'); process.exit(1);} fs.writeFileSync(process.env.OUT_FILE, content.endsWith('\\n')?content:content+'\\n');"
+          transform_stage_c() {
+            local in_file="$1"
+            local out_file="$2"
+            {
+              echo "## Stage C Final Markdown"
+              echo ""
+              awk '{
+                line=$0
+                gsub(/[ \t]+$/, "", line)
+                print line
+              }' "$in_file" | awk 'BEGIN{blank=0} {
+                if ($0 == "") {
+                  if (blank == 0) {
+                    print ""
+                  }
+                  blank = 1
+                } else {
+                  print $0
+                  blank = 0
+                }
+              }'
+            } > "$out_file"
           }
 
           if ! while IFS= read -r target; do
@@ -225,23 +260,29 @@ jobs:
               cp "$stage_a_md" "$stage_b_md"
               cp "$stage_b_md" "$stage_c_md"
 
-              printf '{"dry_run":true,"stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
-              printf '{"dry_run":true,"stage":"B","target":"%s"}\n' "$target" > "$case_dir/stage-b/request.json"
-              printf '{"dry_run":true,"stage":"C","target":"%s"}\n' "$target" > "$case_dir/stage-c/request.json"
+              printf '{"dry_run":true,"mode":"placeholder-copy","stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
+              printf '{"dry_run":true,"mode":"placeholder-copy","stage":"B","target":"%s"}\n' "$target" > "$case_dir/stage-b/request.json"
+              printf '{"dry_run":true,"mode":"placeholder-copy","stage":"C","target":"%s"}\n' "$target" > "$case_dir/stage-c/request.json"
 
               printf '{"message":"dry-run placeholder: copied original into stage A"}\n' > "$case_dir/stage-a/raw-response.json"
               printf '{"message":"dry-run placeholder: copied stage A into stage B"}\n' > "$case_dir/stage-b/raw-response.json"
               printf '{"message":"dry-run placeholder: copied stage B into stage C"}\n' > "$case_dir/stage-c/raw-response.json"
             else
-              call_model "stage-a" "You are the critique/revision agent. Improve clarity, identify weak claims, and propose concrete revisions while preserving markdown structure." "$case_dir/original.md" "$case_dir/stage-a/request.json" "$case_dir/stage-a/raw-response.json" "$stage_a_md" "$target"
+              printf '{"dry_run":false,"mode":"local-transform","stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
+              transform_stage_a "$case_dir/original.md" "$stage_a_md"
+              printf '{"message":"local deterministic transform completed for stage A"}\n' > "$case_dir/stage-a/raw-response.json"
               LAST_SUCCESS="$stage_a_md"
               echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
-              call_model "stage-b" "You are the executive refinement agent. Rewrite for executive readability, concise tone, and decision-ready framing." "$stage_a_md" "$case_dir/stage-b/request.json" "$case_dir/stage-b/raw-response.json" "$stage_b_md" "$target"
+              printf '{"dry_run":false,"mode":"local-transform","stage":"B","target":"%s"}\n' "$target" > "$case_dir/stage-b/request.json"
+              transform_stage_b "$stage_a_md" "$stage_b_md"
+              printf '{"message":"local deterministic transform completed for stage B"}\n' > "$case_dir/stage-b/raw-response.json"
               LAST_SUCCESS="$stage_b_md"
               echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
-              call_model "stage-c" "You are the markdown formatting agent. Return polished, consistently structured markdown suitable for final delivery." "$stage_b_md" "$case_dir/stage-c/request.json" "$case_dir/stage-c/raw-response.json" "$stage_c_md" "$target"
+              printf '{"dry_run":false,"mode":"local-transform","stage":"C","target":"%s"}\n' "$target" > "$case_dir/stage-c/request.json"
+              transform_stage_c "$stage_b_md" "$stage_c_md"
+              printf '{"message":"local deterministic transform completed for stage C"}\n' > "$case_dir/stage-c/raw-response.json"
               LAST_SUCCESS="$stage_c_md"
               echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
             fi

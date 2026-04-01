@@ -110,9 +110,10 @@ No initial primary analysis stage is included.
 
 Dry-run behavior:
 
-- No external model calls.
-- Deterministic placeholder outputs copied from prior stage.
-- Full routing and artifact logic still runs.
+- No external model calls in any mode.
+- `dry_run=true` performs placeholder copy-only processing across stages.
+- `dry_run=false` performs local deterministic stage transforms.
+- Full routing and artifact logic runs in both modes.
 
 Outputs:
 
@@ -125,7 +126,7 @@ Outputs:
 
 Commit behavior:
 
-- Non-dry runs commit generated outputs only when changed.
+- Non-dry runs (`dry_run=false`) commit generated outputs only when changed.
 - If automated push is blocked by permissions/protection, workflow writes manual commit instructions artifact.
 
 Reference assets behavior:
@@ -136,15 +137,6 @@ Reference assets behavior:
 - PDF files are text-extracted into cache artifacts when `pdftotext` is available.
 - DOCX files are extracted when `docx2txt` is available; otherwise a placeholder note is written.
 - Binary/unsupported files are represented with placeholder notes so references remain traceable.
-
-## Required secrets
-
-For non-dry refinement runs:
-
-- `OPENAI_API_KEY` (required)
-- `OPENAI_MODEL` (optional, defaults to `gpt-4.1-mini`)
-
-Do not hardcode credentials. The workflows read from GitHub Secrets and mask secrets in logs.
 
 ## Reliability and safety controls
 
@@ -159,7 +151,7 @@ Do not hardcode credentials. The workflows read from GitHub Secrets and mask sec
 - OCR fallback works when native extraction is weak and OCR tools are installed.
 - Deleting a PDF removes corresponding markdown during conversion workflow runs.
 - Multi-agent workflow starts at critique stage and excludes initial primary analysis.
-- `dry_run=true` executes routing/artifact logic without model calls.
+- `dry_run=true` executes routing/artifact logic with placeholder copy-only stage outputs.
 - Final outputs are written to `rfp-markdown/generated/*-final.md`.
 - Workflows commit only when generated/converted files changed.
 - Audit artifacts and run summary are uploaded for traceability.
