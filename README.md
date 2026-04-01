@@ -90,7 +90,7 @@ Behavior:
 
 ## Workflow 2: Hybrid multimodel refinement
 
-File: `.github/workflows/hybrid-multimodel-analysis.yml`
+File: `.github/workflows/local-multistage-refinement.yml`
 
 Triggers:
 
@@ -98,7 +98,6 @@ Triggers:
 - `workflow_dispatch` with inputs:
 	- `file_path`
 	- `uploads_glob`
-	- `dry_run`
 
 Stages:
 
@@ -108,12 +107,11 @@ Stages:
 
 No initial primary analysis stage is included.
 
-Dry-run behavior:
+Execution behavior:
 
-- No external model calls in any mode.
-- `dry_run=true` performs placeholder copy-only processing across stages.
-- `dry_run=false` performs local deterministic stage transforms.
-- Full routing and artifact logic runs in both modes.
+- No external model calls.
+- Workflow always runs local deterministic stage transforms.
+- Full routing and artifact logic runs on every execution.
 
 Outputs:
 
@@ -126,7 +124,7 @@ Outputs:
 
 Commit behavior:
 
-- Non-dry runs (`dry_run=false`) commit generated outputs only when changed.
+- Workflow commits generated outputs only when changed.
 - If automated push is blocked by permissions/protection, workflow writes manual commit instructions artifact.
 
 Reference assets behavior:
@@ -151,7 +149,7 @@ Reference assets behavior:
 - OCR fallback works when native extraction is weak and OCR tools are installed.
 - Deleting a PDF removes corresponding markdown during conversion workflow runs.
 - Multi-agent workflow starts at critique stage and excludes initial primary analysis.
-- `dry_run=true` executes routing/artifact logic with placeholder copy-only stage outputs.
+- Refinement workflow executes local deterministic stage transforms and writes audit artifacts.
 - Final outputs are written to `rfp-markdown/generated/*-final.md`.
 - Workflows commit only when generated/converted files changed.
 - Audit artifacts and run summary are uploaded for traceability.

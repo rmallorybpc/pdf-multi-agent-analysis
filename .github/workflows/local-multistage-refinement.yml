@@ -1,4 +1,4 @@
-name: hybrid-multimodel-analysis
+name: local-multistage-refinement
 
 on:
   push:
@@ -17,11 +17,6 @@ on:
         description: Optional additional markdown glob for manual runs
         required: false
         type: string
-      dry_run:
-        description: Use placeholder copy-only processing instead of local deterministic transforms
-        required: false
-        default: true
-        type: boolean
 
 permissions:
   contents: write
@@ -43,7 +38,7 @@ jobs:
           mkdir -p rfp-markdown/audit
           mkdir -p .tmp
 
-      - name: Resolve targets and runtime mode
+      - name: Resolve targets
         id: prep
         run: |
           set -euo pipefail
@@ -57,10 +52,8 @@ jobs:
             else
               find rfp-markdown -type f -name '*.md' ! -path 'rfp-markdown/generated/*' ! -path 'rfp-markdown/audit/*' | sort >> .tmp/targets.txt
             fi
-            echo "dry_run=${{ inputs.dry_run }}" >> "$GITHUB_OUTPUT"
           else
             git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -E '^rfp-markdown/.+\.md$' | grep -Ev '^rfp-markdown/(generated|audit)/' | sort >> .tmp/targets.txt || true
-            echo "dry_run=false" >> "$GITHUB_OUTPUT"
           fi
 
           sort -u .tmp/targets.txt -o .tmp/targets.txt || true
@@ -168,7 +161,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          DRY_RUN="${{ steps.prep.outputs.dry_run }}"
           RUN_DIR="${{ steps.prep.outputs.run_dir }}"
           CONTEXT_FILE="$RUN_DIR/knowledge-context.md"
           LAST_SUCCESS="$CONTEXT_FILE"
@@ -255,37 +247,23 @@ jobs:
             stage_b_md="$case_dir/stage-b/output.md"
             stage_c_md="$case_dir/stage-c/output.md"
 
-            if [[ "$DRY_RUN" == "true" ]]; then
-              cp "$case_dir/original.md" "$stage_a_md"
-              cp "$stage_a_md" "$stage_b_md"
-              cp "$stage_b_md" "$stage_c_md"
+            printf '{"mode":"local-transform","stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
+            transform_stage_a "$case_dir/original.md" "$stage_a_md"
+            printf '{"message":"local deterministic transform completed for stage A"}\n' > "$case_dir/stage-a/raw-response.json"
+            LAST_SUCCESS="$stage_a_md"
+            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
-              printf '{"dry_run":true,"mode":"placeholder-copy","stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
-              printf '{"dry_run":true,"mode":"placeholder-copy","stage":"B","target":"%s"}\n' "$target" > "$case_dir/stage-b/request.json"
-              printf '{"dry_run":true,"mode":"placeholder-copy","stage":"C","target":"%s"}\n' "$target" > "$case_dir/stage-c/request.json"
+            printf '{"mode":"local-transform","stage":"B","target":"%s"}\n' "$target" > "$case_dir/stage-b/request.json"
+            transform_stage_b "$stage_a_md" "$stage_b_md"
+            printf '{"message":"local deterministic transform completed for stage B"}\n' > "$case_dir/stage-b/raw-response.json"
+            LAST_SUCCESS="$stage_b_md"
+            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
-              printf '{"message":"dry-run placeholder: copied original into stage A"}\n' > "$case_dir/stage-a/raw-response.json"
-              printf '{"message":"dry-run placeholder: copied stage A into stage B"}\n' > "$case_dir/stage-b/raw-response.json"
-              printf '{"message":"dry-run placeholder: copied stage B into stage C"}\n' > "$case_dir/stage-c/raw-response.json"
-            else
-              printf '{"dry_run":false,"mode":"local-transform","stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
-              transform_stage_a "$case_dir/original.md" "$stage_a_md"
-              printf '{"message":"local deterministic transform completed for stage A"}\n' > "$case_dir/stage-a/raw-response.json"
-              LAST_SUCCESS="$stage_a_md"
-              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
-
-              printf '{"dry_run":false,"mode":"local-transform","stage":"B","target":"%s"}\n' "$target" > "$case_dir/stage-b/request.json"
-              transform_stage_b "$stage_a_md" "$stage_b_md"
-              printf '{"message":"local deterministic transform completed for stage B"}\n' > "$case_dir/stage-b/raw-response.json"
-              LAST_SUCCESS="$stage_b_md"
-              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
-
-              printf '{"dry_run":false,"mode":"local-transform","stage":"C","target":"%s"}\n' "$target" > "$case_dir/stage-c/request.json"
-              transform_stage_c "$stage_b_md" "$stage_c_md"
-              printf '{"message":"local deterministic transform completed for stage C"}\n' > "$case_dir/stage-c/raw-response.json"
-              LAST_SUCCESS="$stage_c_md"
-              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
-            fi
+            printf '{"mode":"local-transform","stage":"C","target":"%s"}\n' "$target" > "$case_dir/stage-c/request.json"
+            transform_stage_c "$stage_b_md" "$stage_c_md"
+            printf '{"message":"local deterministic transform completed for stage C"}\n' > "$case_dir/stage-c/raw-response.json"
+            LAST_SUCCESS="$stage_c_md"
+            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
             final_out="rfp-markdown/generated/${stem}-final.md"
             cp "$stage_c_md" "$final_out"
@@ -297,7 +275,7 @@ jobs:
               echo '# Run Summary'
               echo ''
               echo "- target: $target"
-              echo "- dry_run: $DRY_RUN"
+              echo "- mode: local-transform"
               echo "- stage_a_output: $stage_a_md"
               echo "- stage_b_output: $stage_b_md"
               echo "- stage_c_output: $stage_c_md"
@@ -310,7 +288,7 @@ jobs:
           fi
 
       - name: Commit generated outputs when changed
-        if: steps.prep.outputs.target_count != '0' && steps.prep.outputs.dry_run != 'true'
+        if: steps.prep.outputs.target_count != '0'
         run: |
           set -euo pipefail
           RUN_DIR="${{ steps.prep.outputs.run_dir }}"
