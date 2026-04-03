@@ -113,6 +113,7 @@ Execution behavior:
 - Stages A/B/C always run as local deterministic transforms.
 - Stage D uses GitHub Models with `anthropic/claude-sonnet-4.5` by default.
 - If model access is unavailable (permissions/token/endpoint), Stage D falls back to Stage C output and records fallback status in audit artifacts.
+- If Claude marks content as incomprehensible, the workflow restarts from Stage A with capped retries and then fails clearly if retries are exhausted.
 - Full routing and artifact logic runs on every execution.
 
 Outputs:
@@ -133,6 +134,7 @@ GitHub Models requirements:
 	- `ENABLE_GITHUB_MODELS_CLAUDE` (default `"true"`)
 	- `GITHUB_MODELS_CLAUDE_MODEL` (default `anthropic/claude-sonnet-4.5`)
 	- `GITHUB_MODELS_ENDPOINT` (default `https://models.github.ai/inference/chat/completions`)
+	- `MAX_REFINEMENT_RETRIES` (default `"1"`; total attempts = retries + 1)
 
 Commit behavior:
 

@@ -10,4 +10,5 @@ Rules:
 - Do not remove legally meaningful qualifiers.
 - Merge only where text is clearly a broken continuation of the same sentence.
 - Keep section order unchanged.
-- Return markdown only, with no preface or explanation.
+- If source text is too corrupted to safely repair without guessing, return exactly [[INCOMPREHENSIBLE_SOURCE]] and nothing else.
+- Otherwise, return markdown only, with no preface or explanation.

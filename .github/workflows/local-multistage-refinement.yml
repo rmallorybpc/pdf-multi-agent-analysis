@@ -28,6 +28,7 @@ jobs:
       ENABLE_GITHUB_MODELS_CLAUDE: "true"
       GITHUB_MODELS_CLAUDE_MODEL: anthropic/claude-sonnet-4.5
       GITHUB_MODELS_ENDPOINT: https://models.github.ai/inference/chat/completions
+      MAX_REFINEMENT_RETRIES: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -242,6 +243,7 @@ jobs:
             local request_file="$3"
             local raw_response_file="$4"
             local status_file="$5"
+            local incomprehensible_marker="[[INCOMPREHENSIBLE_SOURCE]]"
 
             cp "$in_file" "$out_file"
 
@@ -272,7 +274,7 @@ jobs:
             endpoint="${GITHUB_MODELS_ENDPOINT:-https://models.github.ai/inference/chat/completions}"
 
             local user_payload
-            user_payload="Clean and normalize this markdown. Fix mid-sentence breaks and hard wraps. Preserve headings, lists, and legal intent exactly. Return markdown only.\n\n--- BEGIN MARKDOWN ---\n$(cat "$in_file")\n--- END MARKDOWN ---"
+            user_payload="Clean and normalize this markdown. Fix mid-sentence breaks and hard wraps. Preserve headings, lists, and legal intent exactly. Return markdown only. If the source is too corrupted to safely repair without guessing, return exactly [[INCOMPREHENSIBLE_SOURCE]] and nothing else.\n\n--- BEGIN MARKDOWN ---\n$(cat "$in_file")\n--- END MARKDOWN ---"
 
             jq -n \
               --arg model "$model" \
@@ -306,6 +308,13 @@ jobs:
               return 0
             fi
 
+            local normalized
+            normalized="$(printf '%s' "$extracted" | tr -d '\r' | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+            if [[ "$normalized" == "$incomprehensible_marker" ]]; then
+              echo "incomprehensible:claude-marker" > "$status_file"
+              return 0
+            fi
+
             printf '%s\n' "$extracted" > "$out_file"
             echo "success:model=${model}" > "$status_file"
             return 0
@@ -317,48 +326,81 @@ jobs:
 
             stem="$(basename "$target" .md)"
             case_dir="$RUN_DIR/$stem"
-            mkdir -p "$case_dir/stage-a" "$case_dir/stage-b" "$case_dir/stage-c" "$case_dir/stage-d"
+            mkdir -p "$case_dir"
 
             cp "$target" "$case_dir/original.md"
             LAST_SUCCESS="$case_dir/original.md"
             echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
-            stage_a_md="$case_dir/stage-a/output.md"
-            stage_b_md="$case_dir/stage-b/output.md"
-            stage_c_md="$case_dir/stage-c/output.md"
-            stage_d_md="$case_dir/stage-d/output.md"
+            retry_limit="${MAX_REFINEMENT_RETRIES:-1}"
+            if ! [[ "$retry_limit" =~ ^[0-9]+$ ]]; then
+              retry_limit=1
+            fi
+            max_attempts=$((retry_limit + 1))
+            attempt=1
+            success=0
+            : > "$case_dir/attempt-status.log"
 
-            printf '{"mode":"local-transform","stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
-            transform_stage_a "$case_dir/original.md" "$stage_a_md"
-            printf '{"message":"local deterministic transform completed for stage A"}\n' > "$case_dir/stage-a/raw-response.json"
-            LAST_SUCCESS="$stage_a_md"
-            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+            while [[ "$attempt" -le "$max_attempts" ]]; do
+              attempt_dir="$case_dir/attempt-${attempt}"
+              mkdir -p "$attempt_dir/stage-a" "$attempt_dir/stage-b" "$attempt_dir/stage-c" "$attempt_dir/stage-d"
 
-            printf '{"mode":"local-transform","stage":"B","target":"%s"}\n' "$target" > "$case_dir/stage-b/request.json"
-            transform_stage_b "$stage_a_md" "$stage_b_md"
-            printf '{"message":"local deterministic transform completed for stage B"}\n' > "$case_dir/stage-b/raw-response.json"
-            LAST_SUCCESS="$stage_b_md"
-            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+              stage_a_md="$attempt_dir/stage-a/output.md"
+              stage_b_md="$attempt_dir/stage-b/output.md"
+              stage_c_md="$attempt_dir/stage-c/output.md"
+              stage_d_md="$attempt_dir/stage-d/output.md"
 
-            printf '{"mode":"local-transform","stage":"C","target":"%s"}\n' "$target" > "$case_dir/stage-c/request.json"
-            transform_stage_c "$stage_b_md" "$stage_c_md"
-            printf '{"message":"local deterministic transform completed for stage C"}\n' > "$case_dir/stage-c/raw-response.json"
-            LAST_SUCCESS="$stage_c_md"
-            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+              printf '{"mode":"local-transform","stage":"A","target":"%s","attempt":%s}\n' "$target" "$attempt" > "$attempt_dir/stage-a/request.json"
+              transform_stage_a "$case_dir/original.md" "$stage_a_md"
+              printf '{"message":"local deterministic transform completed for stage A"}\n' > "$attempt_dir/stage-a/raw-response.json"
+              LAST_SUCCESS="$stage_a_md"
+              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
-            transform_stage_d_claude \
-              "$stage_c_md" \
-              "$stage_d_md" \
-              "$case_dir/stage-d/request.json" \
-              "$case_dir/stage-d/raw-response.json" \
-              "$case_dir/stage-d/status.txt"
-            LAST_SUCCESS="$stage_d_md"
-            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+              printf '{"mode":"local-transform","stage":"B","target":"%s","attempt":%s}\n' "$target" "$attempt" > "$attempt_dir/stage-b/request.json"
+              transform_stage_b "$stage_a_md" "$stage_b_md"
+              printf '{"message":"local deterministic transform completed for stage B"}\n' > "$attempt_dir/stage-b/raw-response.json"
+              LAST_SUCCESS="$stage_b_md"
+              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
-            final_out="rfp-markdown/generated/${stem}-final.md"
-            cp "$stage_d_md" "$final_out"
-            LAST_SUCCESS="$final_out"
-            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+              printf '{"mode":"local-transform","stage":"C","target":"%s","attempt":%s}\n' "$target" "$attempt" > "$attempt_dir/stage-c/request.json"
+              transform_stage_c "$stage_b_md" "$stage_c_md"
+              printf '{"message":"local deterministic transform completed for stage C"}\n' > "$attempt_dir/stage-c/raw-response.json"
+              LAST_SUCCESS="$stage_c_md"
+              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+
+              transform_stage_d_claude \
+                "$stage_c_md" \
+                "$stage_d_md" \
+                "$attempt_dir/stage-d/request.json" \
+                "$attempt_dir/stage-d/raw-response.json" \
+                "$attempt_dir/stage-d/status.txt"
+              LAST_SUCCESS="$stage_d_md"
+              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+
+              stage_d_status="$(cat "$attempt_dir/stage-d/status.txt")"
+              echo "attempt-${attempt}: ${stage_d_status}" >> "$case_dir/attempt-status.log"
+
+              if [[ "$stage_d_status" == incomprehensible:* ]]; then
+                if [[ "$attempt" -lt "$max_attempts" ]]; then
+                  attempt=$((attempt + 1))
+                  continue
+                fi
+                echo "Pipeline failed after ${max_attempts} attempts for ${target}. Last status: ${stage_d_status}" > "$RUN_DIR/failure-summary.txt"
+                exit 1
+              fi
+
+              final_out="rfp-markdown/generated/${stem}-final.md"
+              cp "$stage_d_md" "$final_out"
+              LAST_SUCCESS="$final_out"
+              echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+              success=1
+              break
+            done
+
+            if [[ "$success" -ne 1 ]]; then
+              echo "Pipeline failed with unresolved retry state for ${target}." > "$RUN_DIR/failure-summary.txt"
+              exit 1
+            fi
 
             summary="$case_dir/run-summary.md"
             {
@@ -366,11 +408,14 @@ jobs:
               echo ''
               echo "- target: $target"
               echo "- mode: local-transform"
+              echo "- max_attempts: $max_attempts"
+              echo "- final_attempt: $attempt"
               echo "- stage_a_output: $stage_a_md"
               echo "- stage_b_output: $stage_b_md"
               echo "- stage_c_output: $stage_c_md"
               echo "- stage_d_output: $stage_d_md"
-              echo "- stage_d_status: $(cat "$case_dir/stage-d/status.txt")"
+              echo "- stage_d_status: $stage_d_status"
+              echo "- attempt_status_log: $case_dir/attempt-status.log"
               echo "- final_output: $final_out"
               echo "- last_success_artifact: $LAST_SUCCESS"
             } > "$summary"
