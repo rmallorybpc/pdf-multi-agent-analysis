@@ -104,13 +104,15 @@ Stages:
 1. Stage A: critique/revision agent
 2. Stage B: executive refinement agent
 3. Stage C: final markdown formatting agent
+4. Stage D: GitHub Models cleanup pass (Claude Sonnet 4.5), with safe fallback to Stage C output
 
 No initial primary analysis stage is included.
 
 Execution behavior:
 
-- No external model calls.
-- Workflow always runs local deterministic stage transforms.
+- Stages A/B/C always run as local deterministic transforms.
+- Stage D uses GitHub Models with `anthropic/claude-sonnet-4.5` by default.
+- If model access is unavailable (permissions/token/endpoint), Stage D falls back to Stage C output and records fallback status in audit artifacts.
 - Full routing and artifact logic runs on every execution.
 
 Outputs:
@@ -120,7 +122,17 @@ Outputs:
 	- request payload
 	- raw response
 	- stage markdown output
+	- stage status (including Claude fallback/success status)
 	- run summary
+
+GitHub Models requirements:
+
+- Workflow permissions include `models: read`.
+- Uses `github.token` (no Anthropic API key required).
+- Optional environment toggles in workflow job:
+	- `ENABLE_GITHUB_MODELS_CLAUDE` (default `"true"`)
+	- `GITHUB_MODELS_CLAUDE_MODEL` (default `anthropic/claude-sonnet-4.5`)
+	- `GITHUB_MODELS_ENDPOINT` (default `https://models.github.ai/inference/chat/completions`)
 
 Commit behavior:
 
@@ -180,6 +192,37 @@ Behavior:
 - The pipeline includes a legal-risk stage and writes a contract-focused issues summary.
 - Asset references from `assets/` are preprocessed into text context and injected into agent runs.
 - Supported asset extraction: text files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`), `.pdf` (via `pypdf` with OCR fallback enabled by default), and `.docx` (basic XML extraction).
+
+### Agent Steps (Python markdown analysis)
+
+Agent metadata for this analysis flow:
+
+- Agent runtime: local Python pipeline agents (`extractor`, `reviewer`, `analyst`, `legal-risk`, `synthesizer`)
+- Copilot assistant name: GitHub Copilot
+- Copilot model label: GPT-5.3-Codex
+
+For each markdown chunk, the pipeline runs agents in this exact order:
+
+1. `extractor`
+	- Step 1 role: takes the chunk and extracts the first key lines as a focused content snapshot.
+	- If `assets/` context is present, it also reports overlap terms between the chunk and reference assets.
+2. `reviewer`
+	- Step 2 role: performs structural checks such as TODO markers and short/incomplete chunk warnings.
+	- If `assets/` context is present, it reports how many alignment terms were found.
+3. `analyst`
+	- Step 3 role: computes chunk-level metrics (word count and unique terms).
+	- If `assets/` context is present, it also reports shared term counts against assets.
+4. `legal-risk`
+	- Step 4 role: identifies contractual obligation/risk language (for example: shall, must, termination, liability, indemnity, jurisdiction).
+	- This is the stage that feeds the contract issues output file: `*-final.issues.md` (or `<name>.issues.md`).
+5. `synthesizer`
+	- Step 5 role: generates a concise summary preview of the chunk.
+	- If `assets/` context is present, it appends detected reference anchors.
+
+Final outputs after all chunks are processed:
+
+- Full analysis report: `<name>.analysis.md`
+- Contract issues summary (from `legal-risk` results): `<name>.issues.md`
 
 Enable OCR fallback for scanned/image PDFs in assets (requires `pdftoppm` and `tesseract`):
 

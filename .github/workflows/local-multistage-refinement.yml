@@ -19,10 +19,15 @@ on:
 
 permissions:
   contents: write
+  models: read
 
 jobs:
   refine:
     runs-on: ubuntu-latest
+    env:
+      ENABLE_GITHUB_MODELS_CLAUDE: "true"
+      GITHUB_MODELS_CLAUDE_MODEL: anthropic/claude-sonnet-4.5
+      GITHUB_MODELS_ENDPOINT: https://models.github.ai/inference/chat/completions
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -154,8 +159,10 @@ jobs:
             cat "$cached" >> "$CONTEXT_FILE"
           done < <(find "$CACHE_DIR" -type f -name '*.txt' | sort)
 
-      - name: Run critique, refine, and formatting stages
+      - name: Run critique, refine, formatting, and Claude cleanup stages
         if: steps.prep.outputs.target_count != '0'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
@@ -229,13 +236,88 @@ jobs:
             } > "$out_file"
           }
 
+          transform_stage_d_claude() {
+            local in_file="$1"
+            local out_file="$2"
+            local request_file="$3"
+            local raw_response_file="$4"
+            local status_file="$5"
+
+            cp "$in_file" "$out_file"
+
+            if [[ "${ENABLE_GITHUB_MODELS_CLAUDE:-true}" != "true" ]]; then
+              printf '{"mode":"skipped","reason":"disabled via ENABLE_GITHUB_MODELS_CLAUDE"}\n' > "$request_file"
+              printf '{"message":"stage D skipped; using stage C output"}\n' > "$raw_response_file"
+              echo "skipped:disabled" > "$status_file"
+              return 0
+            fi
+
+            if [[ -z "${GITHUB_TOKEN:-}" ]]; then
+              printf '{"mode":"skipped","reason":"GITHUB_TOKEN unavailable"}\n' > "$request_file"
+              printf '{"message":"stage D skipped; using stage C output"}\n' > "$raw_response_file"
+              echo "skipped:no-token" > "$status_file"
+              return 0
+            fi
+
+            local prompt_file="prompts/claude-cleanup.md"
+            local system_prompt
+            if [[ -f "$prompt_file" ]]; then
+              system_prompt="$(cat "$prompt_file")"
+            else
+              system_prompt="You are a legal-markdown cleanup editor. Repair line-wrap artifacts and sentence breaks, preserve meaning, preserve markdown structure, and do not add new legal obligations."
+            fi
+
+            local model endpoint
+            model="${GITHUB_MODELS_CLAUDE_MODEL:-anthropic/claude-sonnet-4.5}"
+            endpoint="${GITHUB_MODELS_ENDPOINT:-https://models.github.ai/inference/chat/completions}"
+
+            local user_payload
+            user_payload="Clean and normalize this markdown. Fix mid-sentence breaks and hard wraps. Preserve headings, lists, and legal intent exactly. Return markdown only.\n\n--- BEGIN MARKDOWN ---\n$(cat "$in_file")\n--- END MARKDOWN ---"
+
+            jq -n \
+              --arg model "$model" \
+              --arg system "$system_prompt" \
+              --arg user "$user_payload" \
+              '{
+                model: $model,
+                temperature: 0.1,
+                messages: [
+                  {role: "system", content: $system},
+                  {role: "user", content: $user}
+                ]
+              }' > "$request_file"
+
+            if ! curl --silent --show-error --fail-with-body \
+              -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -H "Accept: application/json" \
+              -X POST "$endpoint" \
+              --data @"$request_file" \
+              -o "$raw_response_file"; then
+              echo "fallback:request-failed" > "$status_file"
+              return 0
+            fi
+
+            local extracted
+            extracted="$(jq -r 'if (.choices[0].message.content | type) == "string" then .choices[0].message.content else (.choices[0].message.content | map(select(type == "object") | .text // "") | join("")) end' "$raw_response_file" 2>/dev/null || true)"
+
+            if [[ -z "${extracted//[[:space:]]/}" || "$extracted" == "null" ]]; then
+              echo "fallback:empty-response" > "$status_file"
+              return 0
+            fi
+
+            printf '%s\n' "$extracted" > "$out_file"
+            echo "success:model=${model}" > "$status_file"
+            return 0
+          }
+
           if ! while IFS= read -r target; do
             [[ -z "$target" ]] && continue
             [[ ! -f "$target" ]] && continue
 
             stem="$(basename "$target" .md)"
             case_dir="$RUN_DIR/$stem"
-            mkdir -p "$case_dir/stage-a" "$case_dir/stage-b" "$case_dir/stage-c"
+            mkdir -p "$case_dir/stage-a" "$case_dir/stage-b" "$case_dir/stage-c" "$case_dir/stage-d"
 
             cp "$target" "$case_dir/original.md"
             LAST_SUCCESS="$case_dir/original.md"
@@ -244,6 +326,7 @@ jobs:
             stage_a_md="$case_dir/stage-a/output.md"
             stage_b_md="$case_dir/stage-b/output.md"
             stage_c_md="$case_dir/stage-c/output.md"
+            stage_d_md="$case_dir/stage-d/output.md"
 
             printf '{"mode":"local-transform","stage":"A","target":"%s"}\n' "$target" > "$case_dir/stage-a/request.json"
             transform_stage_a "$case_dir/original.md" "$stage_a_md"
@@ -263,8 +346,17 @@ jobs:
             LAST_SUCCESS="$stage_c_md"
             echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
+            transform_stage_d_claude \
+              "$stage_c_md" \
+              "$stage_d_md" \
+              "$case_dir/stage-d/request.json" \
+              "$case_dir/stage-d/raw-response.json" \
+              "$case_dir/stage-d/status.txt"
+            LAST_SUCCESS="$stage_d_md"
+            echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
+
             final_out="rfp-markdown/generated/${stem}-final.md"
-            cp "$stage_c_md" "$final_out"
+            cp "$stage_d_md" "$final_out"
             LAST_SUCCESS="$final_out"
             echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
 
@@ -277,6 +369,8 @@ jobs:
               echo "- stage_a_output: $stage_a_md"
               echo "- stage_b_output: $stage_b_md"
               echo "- stage_c_output: $stage_c_md"
+              echo "- stage_d_output: $stage_d_md"
+              echo "- stage_d_status: $(cat "$case_dir/stage-d/status.txt")"
               echo "- final_output: $final_out"
               echo "- last_success_artifact: $LAST_SUCCESS"
             } > "$summary"

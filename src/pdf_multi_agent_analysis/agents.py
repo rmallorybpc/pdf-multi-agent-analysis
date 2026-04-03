@@ -19,6 +19,25 @@ def _tokenize(text: str) -> set[str]:
     return set(re.findall(r"[A-Za-z][A-Za-z0-9_-]{2,}", text.lower()))
 
 
+def _summary_preview(text: str, max_chars: int = 500) -> str:
+    compact = re.sub(r"\s+", " ", text).strip()
+    if not compact:
+        return "No summary available"
+    if len(compact) <= max_chars:
+        return compact
+
+    window = compact[:max_chars]
+    cut_points = [window.rfind(sep) for sep in (". ", "? ", "! ", "; ")]
+    cut = max(cut_points)
+    if cut >= 80:
+        return window[: cut + 1].strip()
+
+    word_cut = window.rfind(" ")
+    if word_cut >= 80:
+        return window[:word_cut].strip() + "..."
+    return window.strip() + "..."
+
+
 class ExtractorAgent(BaseAgent):
     name = "extractor"
 
@@ -116,9 +135,7 @@ class SynthesizerAgent(BaseAgent):
     name = "synthesizer"
 
     def run(self, markdown_chunk: str, assets_context: str = "") -> AgentResult:
-        preview = markdown_chunk[:280].replace("\n", " ").strip()
-        if not preview:
-            preview = "No summary available"
+        preview = _summary_preview(markdown_chunk)
         if not assets_context.strip():
             return AgentResult(self.name, f"Summary preview: {preview}")
 

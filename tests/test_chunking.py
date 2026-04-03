@@ -19,3 +19,11 @@ def test_invalid_overlap_raises() -> None:
         assert "smaller" in str(exc)
     else:
         raise AssertionError("Expected ValueError")
+
+
+def test_chunking_prefers_sentence_boundary() -> None:
+    text = "Sentence one is complete. Sentence two is also complete. Sentence three finishes the thought."
+    chunks = chunk_markdown(text, chunk_size_chars=45, overlap_chars=5)
+
+    assert chunks[0].endswith(". ")
+    assert chunks[0] == "Sentence one is complete. "
