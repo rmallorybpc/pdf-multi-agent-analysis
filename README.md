@@ -157,3 +157,24 @@ Reference assets behavior:
 ## Legacy notes
 
 The earlier Python scaffold remains in the repo as legacy reference, but Node + GitHub Actions is the primary implementation path.
+
+## Local Python analysis of existing markdown + assets
+
+If you already have a converted markdown file, run the Python CLI directly against it and include reference files from `assets/`:
+
+```bash
+python -m pdf_multi_agent_analysis.cli analyze-markdown \
+	"rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.md" \
+	--assets-dir assets \
+	--out-dir rfp-markdown/generated
+```
+
+This writes:
+
+- analysis report: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.analysis.md`
+
+Behavior:
+
+- The markdown is chunked and processed by extractor/reviewer/analyst/synthesizer agents.
+- Asset references from `assets/` are preprocessed into text context and injected into agent runs.
+- Supported asset extraction: text files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`), `.pdf` (via `pypdf`), and `.docx` (basic XML extraction).

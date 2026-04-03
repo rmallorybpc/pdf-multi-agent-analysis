@@ -3,7 +3,7 @@ from pathlib import Path
 
 from .config import PipelineConfig
 from .converter import pdf_to_markdown
-from .pipeline import run_pipeline
+from .pipeline import run_markdown_analysis, run_pipeline
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -23,6 +23,16 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--chunk-size", type=int, default=1800)
     run.add_argument("--overlap", type=int, default=200)
 
+    analyze_md = sub.add_parser(
+        "analyze-markdown",
+        help="Run multi-agent analysis for an existing markdown file",
+    )
+    analyze_md.add_argument("markdown", type=Path)
+    analyze_md.add_argument("--assets-dir", type=Path, default=Path("assets"))
+    analyze_md.add_argument("--out-dir", type=Path, default=Path("output"))
+    analyze_md.add_argument("--chunk-size", type=int, default=1800)
+    analyze_md.add_argument("--overlap", type=int, default=200)
+
     return parser
 
 
@@ -35,6 +45,18 @@ def main() -> int:
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(markdown, encoding="utf-8")
         print(f"Wrote markdown: {args.out}")
+        return 0
+
+    if args.command == "analyze-markdown":
+        cfg = PipelineConfig(
+            output_dir=args.out_dir,
+            chunk_size_chars=args.chunk_size,
+            overlap_chars=args.overlap,
+        )
+        result = run_markdown_analysis(args.markdown, config=cfg, assets_dir=args.assets_dir)
+        print(f"Wrote report: {result['report_path']}")
+        print(f"Chunks analyzed: {result['chunk_count']}")
+        print(f"Assets context included: {result['assets_context_included']}")
         return 0
 
     cfg = PipelineConfig(

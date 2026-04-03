@@ -1,0 +1,84 @@
+from __future__ import annotations
+
+from html import unescape
+from pathlib import Path
+import re
+import zipfile
+
+TEXT_EXTENSIONS = {".md", ".txt", ".json", ".yaml", ".yml"}
+
+
+def _read_text_file(path: Path, max_chars: int) -> str:
+    return path.read_text(encoding="utf-8", errors="ignore")[:max_chars].strip()
+
+
+def _read_pdf_file(path: Path, max_chars: int) -> str:
+    try:
+        from pypdf import PdfReader
+    except Exception:
+        return "[pdf reference present; pypdf unavailable in environment]"
+
+    reader = PdfReader(str(path))
+    parts: list[str] = []
+    remaining = max_chars
+
+    for page in reader.pages:
+        if remaining <= 0:
+            break
+        text = (page.extract_text() or "").strip()
+        if not text:
+            continue
+        snippet = text[:remaining]
+        parts.append(snippet)
+        remaining -= len(snippet)
+
+    if not parts:
+        return "[pdf reference present; no extractable text found]"
+    return "\n\n".join(parts).strip()
+
+
+def _read_docx_file(path: Path, max_chars: int) -> str:
+    try:
+        with zipfile.ZipFile(path) as zf:
+            raw_xml = zf.read("word/document.xml").decode("utf-8", errors="ignore")
+    except Exception:
+        return "[docx reference present; unable to extract text]"
+
+    no_tags = re.sub(r"<[^>]+>", " ", raw_xml)
+    collapsed = re.sub(r"\s+", " ", unescape(no_tags)).strip()
+    if not collapsed:
+        return "[docx reference present; no extractable text found]"
+    return collapsed[:max_chars]
+
+
+def build_assets_context(assets_dir: Path, max_chars_per_file: int = 4000) -> str:
+    """Build a deterministic markdown context block from reference assets."""
+    if not assets_dir.exists() or not assets_dir.is_dir():
+        return ""
+
+    sections: list[str] = ["# Assets Context", ""]
+
+    for path in sorted(p for p in assets_dir.rglob("*") if p.is_file()):
+        rel = path.relative_to(assets_dir)
+        suffix = path.suffix.lower()
+
+        if suffix in TEXT_EXTENSIONS:
+            content = _read_text_file(path, max_chars_per_file)
+        elif suffix == ".pdf":
+            content = _read_pdf_file(path, max_chars_per_file)
+        elif suffix == ".docx":
+            content = _read_docx_file(path, max_chars_per_file)
+        else:
+            content = "[unsupported/binary reference file type]"
+
+        if not content:
+            content = "[no content extracted]"
+
+        sections.append(f"## {rel.as_posix()}")
+        sections.append(content)
+        sections.append("")
+
+    if len(sections) <= 2:
+        return ""
+
+    return "\n".join(sections).strip() + "\n"
