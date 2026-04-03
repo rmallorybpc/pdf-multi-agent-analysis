@@ -27,5 +27,5 @@ extraction_method: "native"
 _No text extracted from PDF._
 
 ### Stage A Notes
-- Lines: 8
+- Lines: 7
 - Flags: 0
