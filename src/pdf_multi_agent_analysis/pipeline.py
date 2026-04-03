@@ -64,7 +64,12 @@ def run_markdown_analysis(
     markdown = markdown_path.read_text(encoding="utf-8")
     assets_context = ""
     if assets_dir is not None:
-        assets_context = build_assets_context(assets_dir, max_chars_per_file=cfg.max_asset_chars_per_file)
+        assets_context = build_assets_context(
+            assets_dir,
+            max_chars_per_file=cfg.max_asset_chars_per_file,
+            pdf_ocr_fallback=cfg.asset_pdf_ocr_fallback,
+            pdf_ocr_max_pages=cfg.asset_pdf_ocr_max_pages,
+        )
 
     analysis = _analyze_markdown(markdown, markdown_path.name, cfg, assets_context=assets_context)
     report_path = cfg.output_dir / f"{markdown_path.stem}.analysis.md"

@@ -32,6 +32,17 @@ def build_parser() -> argparse.ArgumentParser:
     analyze_md.add_argument("--out-dir", type=Path, default=Path("output"))
     analyze_md.add_argument("--chunk-size", type=int, default=1800)
     analyze_md.add_argument("--overlap", type=int, default=200)
+    analyze_md.add_argument(
+        "--asset-ocr-fallback",
+        action="store_true",
+        help="Enable OCR fallback for PDF files in assets (requires pdftoppm and tesseract)",
+    )
+    analyze_md.add_argument(
+        "--asset-ocr-max-pages",
+        type=int,
+        default=6,
+        help="Maximum number of pages to OCR per PDF asset",
+    )
 
     return parser
 
@@ -52,6 +63,8 @@ def main() -> int:
             output_dir=args.out_dir,
             chunk_size_chars=args.chunk_size,
             overlap_chars=args.overlap,
+            asset_pdf_ocr_fallback=args.asset_ocr_fallback,
+            asset_pdf_ocr_max_pages=args.asset_ocr_max_pages,
         )
         result = run_markdown_analysis(args.markdown, config=cfg, assets_dir=args.assets_dir)
         print(f"Wrote report: {result['report_path']}")

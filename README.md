@@ -178,3 +178,14 @@ Behavior:
 - The markdown is chunked and processed by extractor/reviewer/analyst/synthesizer agents.
 - Asset references from `assets/` are preprocessed into text context and injected into agent runs.
 - Supported asset extraction: text files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`), `.pdf` (via `pypdf`), and `.docx` (basic XML extraction).
+
+Enable OCR fallback for scanned/image PDFs in assets (requires `pdftoppm` and `tesseract`):
+
+```bash
+python -m pdf_multi_agent_analysis.cli analyze-markdown \
+	"rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.md" \
+	--assets-dir assets \
+	--out-dir rfp-markdown/generated \
+	--asset-ocr-fallback \
+	--asset-ocr-max-pages 8
+```
