@@ -4,9 +4,8 @@ on:
   push:
     paths:
       - rfp-markdown/**/*.md
-    paths-ignore:
-      - rfp-markdown/generated/**/*.md
-      - rfp-markdown/audit/**
+      - '!rfp-markdown/generated/**/*.md'
+      - '!rfp-markdown/audit/**'
   workflow_dispatch:
     inputs:
       file_path:
