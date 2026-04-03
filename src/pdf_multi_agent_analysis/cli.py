@@ -34,7 +34,8 @@ def build_parser() -> argparse.ArgumentParser:
     analyze_md.add_argument("--overlap", type=int, default=200)
     analyze_md.add_argument(
         "--asset-ocr-fallback",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
+        default=True,
         help="Enable OCR fallback for PDF files in assets (requires pdftoppm and tesseract)",
     )
     analyze_md.add_argument(
@@ -68,6 +69,7 @@ def main() -> int:
         )
         result = run_markdown_analysis(args.markdown, config=cfg, assets_dir=args.assets_dir)
         print(f"Wrote report: {result['report_path']}")
+        print(f"Wrote issues summary: {result['issues_path']}")
         print(f"Chunks analyzed: {result['chunk_count']}")
         print(f"Assets context included: {result['assets_context_included']}")
         return 0
@@ -80,6 +82,7 @@ def main() -> int:
     result = run_pipeline(args.pdf, cfg)
     print(f"Wrote markdown: {result['markdown_path']}")
     print(f"Wrote report: {result['report_path']}")
+    print(f"Wrote issues summary: {result['issues_path']}")
     print(f"Chunks analyzed: {result['chunk_count']}")
     return 0
 

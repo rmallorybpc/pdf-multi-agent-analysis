@@ -172,12 +172,14 @@ python -m pdf_multi_agent_analysis.cli analyze-markdown \
 This writes:
 
 - analysis report: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.analysis.md`
+- issues summary: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.issues.md`
 
 Behavior:
 
 - The markdown is chunked and processed by extractor/reviewer/analyst/synthesizer agents.
+- The pipeline includes a legal-risk stage and writes a contract-focused issues summary.
 - Asset references from `assets/` are preprocessed into text context and injected into agent runs.
-- Supported asset extraction: text files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`), `.pdf` (via `pypdf`), and `.docx` (basic XML extraction).
+- Supported asset extraction: text files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`), `.pdf` (via `pypdf` with OCR fallback enabled by default), and `.docx` (basic XML extraction).
 
 Enable OCR fallback for scanned/image PDFs in assets (requires `pdftoppm` and `tesseract`):
 
@@ -188,4 +190,14 @@ python -m pdf_multi_agent_analysis.cli analyze-markdown \
 	--out-dir rfp-markdown/generated \
 	--asset-ocr-fallback \
 	--asset-ocr-max-pages 8
+```
+
+Disable OCR fallback when needed:
+
+```bash
+python -m pdf_multi_agent_analysis.cli analyze-markdown \
+	"rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.md" \
+	--assets-dir assets \
+	--out-dir rfp-markdown/generated \
+	--no-asset-ocr-fallback
 ```

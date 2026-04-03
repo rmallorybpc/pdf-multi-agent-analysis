@@ -10,5 +10,5 @@ class PipelineConfig:
     overlap_chars: int = 200
     output_dir: Path = Path("output")
     max_asset_chars_per_file: int = 4000
-    asset_pdf_ocr_fallback: bool = False
+    asset_pdf_ocr_fallback: bool = True
     asset_pdf_ocr_max_pages: int = 6

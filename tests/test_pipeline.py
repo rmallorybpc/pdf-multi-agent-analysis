@@ -19,9 +19,13 @@ def test_run_markdown_analysis_with_assets(tmp_path: Path) -> None:
     result = run_markdown_analysis(md_file, cfg, assets_dir=assets_dir)
 
     report_path = result["report_path"]
+    issues_path = result["issues_path"]
     assert report_path.exists()
+    assert issues_path.exists()
     report = report_path.read_text(encoding="utf-8")
+    issues = issues_path.read_text(encoding="utf-8")
     assert "# Analysis Report" in report
+    assert "# Contract Issues Summary" in issues
     assert "## Reference Assets" in report
     assert "notes.txt" in report
     assert result["assets_context_included"] is True
@@ -35,6 +39,9 @@ def test_run_markdown_analysis_without_assets(tmp_path: Path) -> None:
     result = run_markdown_analysis(md_file, cfg, assets_dir=tmp_path / "missing-assets")
 
     report_path = result["report_path"]
+    issues_path = result["issues_path"]
     report = report_path.read_text(encoding="utf-8")
+    issues = issues_path.read_text(encoding="utf-8")
     assert "## Reference Assets" not in report
+    assert "# Contract Issues Summary" in issues
     assert result["assets_context_included"] is False

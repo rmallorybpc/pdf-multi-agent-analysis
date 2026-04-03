@@ -15,6 +15,14 @@ def _read_text_file(path: Path, max_chars: int) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")[:max_chars].strip()
 
 
+def _normalize_extracted_text(text: str) -> str:
+    text = text.replace("\x00", "")
+    text = re.sub(r"(?<!\w)(?:[A-Za-z]\s){3,}[A-Za-z](?!\w)", lambda m: m.group(0).replace(" ", ""), text)
+    text = re.sub(r"[^\S\n]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
 def _extract_pdf_text_native(path: Path, max_chars: int) -> str:
     try:
         from pypdf import PdfReader
@@ -31,7 +39,10 @@ def _extract_pdf_text_native(path: Path, max_chars: int) -> str:
         text = (page.extract_text() or "").strip()
         if not text:
             continue
-        snippet = text[:remaining]
+        cleaned = _normalize_extracted_text(text)
+        if not cleaned:
+            continue
+        snippet = cleaned[:remaining]
         parts.append(snippet)
         remaining -= len(snippet)
 
@@ -81,7 +92,10 @@ def _extract_pdf_text_ocr(path: Path, max_chars: int, max_pages: int) -> str:
             text = ocr.stdout.strip()
             if not text:
                 continue
-            snippet = text[:remaining]
+            cleaned = _normalize_extracted_text(text)
+            if not cleaned:
+                continue
+            snippet = cleaned[:remaining]
             collected.append(snippet)
             remaining -= len(snippet)
 

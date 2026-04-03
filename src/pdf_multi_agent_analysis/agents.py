@@ -73,6 +73,45 @@ class AnalystAgent(BaseAgent):
         )
 
 
+class LegalRiskAgent(BaseAgent):
+    name = "legal-risk"
+
+    _keyword_pattern = re.compile(
+        r"\b(shall|must|will\s+not|terminate|termination|breach|liable|liability|"
+        r"indemn|injunctive|governed\s+by|exclusive\s+jurisdiction|waive)\b",
+        re.IGNORECASE,
+    )
+
+    def run(self, markdown_chunk: str, assets_context: str = "") -> AgentResult:
+        sentences = [
+            s.strip()
+            for s in re.split(r"(?<=[.!?;])\s+|\n+", markdown_chunk)
+            if s.strip()
+        ]
+        matches: list[str] = []
+        seen: set[str] = set()
+
+        for sentence in sentences:
+            if not self._keyword_pattern.search(sentence):
+                continue
+            compact = re.sub(r"\s+", " ", sentence)
+            key = compact.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            matches.append(f"- {compact}")
+            if len(matches) >= 8:
+                break
+
+        if not matches:
+            return AgentResult(self.name, "No explicit obligation or risk clauses detected in this chunk.")
+
+        return AgentResult(
+            self.name,
+            "Potential obligations/risks:\n" + "\n".join(matches),
+        )
+
+
 class SynthesizerAgent(BaseAgent):
     name = "synthesizer"
 
