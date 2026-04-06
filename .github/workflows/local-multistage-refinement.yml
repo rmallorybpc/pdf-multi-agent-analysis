@@ -437,14 +437,16 @@ jobs:
           set -euo pipefail
           RUN_DIR="${{ steps.prep.outputs.run_dir }}"
 
-          if git diff --quiet -- rfp-markdown/generated; then
+          # Stage first so newly created generated files are included in the change check.
+          git add rfp-markdown/generated
+
+          if git diff --cached --quiet -- rfp-markdown/generated; then
             echo "No generated markdown changes to commit."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add rfp-markdown/generated
 
           if ! git commit -m "chore(refinement): update generated markdown outputs"; then
             echo "Generated files unchanged at commit time."

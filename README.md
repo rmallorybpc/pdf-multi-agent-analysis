@@ -171,7 +171,7 @@ Reference assets behavior:
 - Multi-agent workflow starts at critique stage and excludes initial primary analysis.
 - Refinement workflow executes local deterministic stage transforms and writes audit artifacts.
 - Final outputs are written to `rfp-markdown/generated/*-final.md`.
-- Workflows commit only when generated/converted files changed.
+- Workflows commit only when generated/converted files changed, including newly created files.
 - Audit artifacts and run summary are uploaded for traceability.
 
 ## Legacy notes
