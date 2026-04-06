@@ -57,7 +57,8 @@ jobs:
               find rfp-markdown -type f -name '*.md' ! -path 'rfp-markdown/generated/*' ! -path 'rfp-markdown/audit/*' | sort >> .tmp/targets.txt
             fi
           else
-            git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -E '^rfp-markdown/.+\.md$' | grep -Ev '^rfp-markdown/(generated|audit)/' | sort >> .tmp/targets.txt || true
+            # On push, re-run all source markdown files so existing outputs stay in sync.
+            find rfp-markdown -type f -name '*.md' ! -path 'rfp-markdown/generated/*' ! -path 'rfp-markdown/audit/*' | sort >> .tmp/targets.txt
           fi
 
           sort -u .tmp/targets.txt -o .tmp/targets.txt || true

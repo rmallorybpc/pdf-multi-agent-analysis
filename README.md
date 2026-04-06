@@ -99,6 +99,11 @@ Triggers:
 	- `file_path`
 	- `uploads_glob`
 
+Target selection:
+
+- `push`: processes all source markdown files under `rfp-markdown/` (excluding `generated/` and `audit/`).
+- `workflow_dispatch`: processes `file_path`, or `uploads_glob`, or all source markdown files if neither input is set.
+
 Stages:
 
 1. Stage A: critique/revision agent
