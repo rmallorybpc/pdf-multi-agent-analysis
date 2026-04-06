@@ -95,6 +95,7 @@ File: `.github/workflows/local-multistage-refinement.yml`
 Triggers:
 
 - `push` on `rfp-markdown/**/*.md` (excluding generated/audit outputs)
+- `workflow_run` when `convert-rfp-pdf-to-markdown` completes successfully
 - `workflow_dispatch` with inputs:
 	- `file_path`
 	- `uploads_glob`
