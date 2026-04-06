@@ -1,0 +1,3 @@
+# source: assets/Real-World SOC 2 Report Example.pdf
+
+[pdf reference present; pdftotext unavailable on runner]

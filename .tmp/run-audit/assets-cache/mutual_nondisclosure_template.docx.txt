@@ -1,0 +1,3 @@
+# source: assets/mutual_nondisclosure_template.docx
+
+[docx reference present; docx2txt unavailable on runner]

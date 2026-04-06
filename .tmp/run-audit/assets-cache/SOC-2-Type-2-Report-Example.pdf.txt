@@ -1,0 +1,3 @@
+# source: assets/SOC-2-Type-2-Report-Example.pdf
+
+[pdf reference present; pdftotext unavailable on runner]

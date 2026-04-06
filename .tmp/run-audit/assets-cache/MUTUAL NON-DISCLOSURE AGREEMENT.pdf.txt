@@ -1,0 +1,3 @@
+# source: assets/MUTUAL NON-DISCLOSURE AGREEMENT.pdf
+
+[pdf reference present; pdftotext unavailable on runner]

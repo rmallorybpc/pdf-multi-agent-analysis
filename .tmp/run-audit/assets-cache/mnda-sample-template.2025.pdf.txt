@@ -1,0 +1,3 @@
+# source: assets/mnda-sample-template.2025.pdf
+
+[pdf reference present; pdftotext unavailable on runner]
