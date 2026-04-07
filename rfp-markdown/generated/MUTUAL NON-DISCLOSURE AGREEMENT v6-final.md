@@ -1,13 +1,13 @@
 ---
 title: "MUTUAL NON-DISCLOSURE AGREEMENT v6-final.md"
 source: "MUTUAL NON-DISCLOSURE AGREEMENT v6-final.md"
-last_run: "2026-04-07T14:52:40Z"
+last_run: "2026-04-07T19:12:41Z"
 ---
 
 # Final Synthesized Output: MUTUAL NON-DISCLOSURE AGREEMENT v6-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-07T14:52:27Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v6" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v6.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-07T19:12:28Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v6" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v6.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Reference anchors: accordance, agree, agreement, and, are, below, between, business, can, company
 
@@ -74,4 +74,4 @@ Reference anchors: address, agree, agreement, all, and, any, company, corporatio
 ## Chunk 14
 Summary preview: y Yetman, President and Chief Executive Officer “Company” TECHNOLOGY RESEARCH CORPORATION By: — /s/ Robert D. Woltil Name: Robert D. Woltil Title: VP Finance, CFO and Secretary Company’s Address: 5250 140th Avenue North Clearwater, Florida 33760 Attention: Owen Farren, President and Chief Executive Officer ### Stage A Notes - Lines: 93 - Flags: 0
 
-Reference anchors: address, and, company, corporation, name
+Reference anchors: address, and, company, corporation, name, research

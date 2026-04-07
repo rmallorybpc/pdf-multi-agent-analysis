@@ -1,532 +1,68 @@
 # Analysis Report: MUTUAL NON-DISCLOSURE AGREEMENT v9-final.md
 
 ## Asset Extraction Warnings
-- WARNING: Asset extraction warning for MUTUAL NON-DISCLOSURE AGREEMENT.pdf: no extractable text found with native extraction or OCR fallback
-- WARNING: Asset extraction warning for Real-World SOC 2 Report Example.pdf: no extractable text found with native extraction or OCR fallback
+- WARNING: Asset extraction failed for MUTUAL NON-DISCLOSURE AGREEMENT.pdf: no extractable text found with native extraction or OCR fallback
+- WARNING: Asset extraction failed for Real-World SOC 2 Report Example.pdf: no extractable text found with native extraction or OCR fallback
 
 ## Reference Assets
 # Assets Context
 
 ## SOC-2-Type-2-Report-Example.pdf
-ThisreportpresentsanindependentexaminationofXYZ Company ’ sdescriptionofthe [ SystemName ] andan assessmentofwhetherthere la tedcontro ls were suitab ly designedandoperatedeffective ly in accordancewiththeapp li cab le TrustServicesCriteria throughouttheperiodfrom [ StartDate ] t o [ EndDate ] , as specifiedinthereportdocumentation
+ThisreportpresentsanindependentexaminationofXYZ
+Company ’ sdescriptionofthe [ SystemName ] andan assessmentofwhetherthere la tedcontro ls were suitab ly designedandoperatedeffective ly in accordancewiththeapp li cab le TrustServicesCriteria throughouttheperiodfrom [ StartDate ] t o [ EndDate ] , as specifiedinthereportdocumentation
 
-SOC 2 Type 2 Report for XYZ 
-Company
- 
- 
- 
-Outline 
- 
-Section I – Independent Service Auditor’s Report 2 Section II – XYZ Company’s Management Assertion 6 Section III – XYZ Company’s Description of the System 8 Section IV – Trust Services Criteria, Related Controls, and Tests of Controls 30 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- Bright Defense Page No. 1
+SOC 2 Type 2 Report for XYZ
+Company Outline Section I – Independent Service Auditor’s Report 2 Section II – XYZ Company’s Management Assertion 6 Section III – XYZ Company’s Description of the System 8 Section IV – Trust Services Criteria, Related Controls, and Tests of Controls 30
+Bright Defense Page No. 1
 
-Section I – Independent Service Auditor’s Report 
-Scope of Examination 
-The independent service auditor was engaged to evaluate XYZ Company’s 
-description
- 
-of
- 
-its
- 
-[System
- 
-Name]
- 
-for
- 
-the
- 
-period
- 
-[Start
- 
-Date]
- 
-through
- 
-[End
- 
-Date]
-.
- 
-The
- 
-objective
- 
-of
- 
-the
- 
-examination
- 
-was
- 
-to
- 
-determine
- 
-whether
- 
-the
- 
-description
- 
-conforms
- 
-to
- 
-the
- 
-Description
- 
-Criteria
- 
-established
- 
-in
- 
-DC
- 
-Section
- 
-200,
- 
-2018
- 
-Description
- 
-Criteria
- 
-for
- 
-a
- 
-Description
- 
-of
- 
-a
- 
-Service
- 
-Organization’s
- 
-System
- 
-in
- 
-a
- 
-SOC
- 
-2®
- 
-Report
- 
-and
- 
-to
- 
-assess
- 
-whether
- 
-the
- 
-controls
- 
-described
- 
-were
- 
-suitably
- 
-designed
- 
-and
- 
-operated
- 
-effectively
- 
-to
- 
-meet
- 
-the
- 
-Trust
- 
-Services
- 
-Criteria
- 
-for
- 
-Security,
- 
-Availability,
- 
-Processing
- 
-Integrity,
- 
-Confidentiality,
- 
-and
- 
-Privacy.
- 
-The
- 
-auditor
- 
-reviewed
- 
-policies,
- 
-procedures,
- 
-and
- 
-control
- 
-activities
- 
-and
- 
-evaluated
- 
-whether
- 
-the
- 
-system
- 
-description
- 
-included
- 
-all
- 
-relevant
- 
-aspects
- 
-of
- 
-the
- 
-environment
- 
-that
- 
-support
- 
-the
- 
-services
- 
-provided.
- 
-Service Organization’s Responsibilities 
-XYZ Company’s management bears full responsibility for the completeness and 
-accuracy
- 
-of
- 
-the
- 
-system
- 
-description,
- 
-for
- 
-designing,
- 
-implementing,
- 
-and
- 
-operating
- 
-effective
- 
-controls,
- 
-and
- 
-for
- 
-achieving
- 
-service
- 
-commitments
- 
-and
- 
-system
- 
-requirements.
- 
-Management
- 
-must:
- 
-1. Prepare the description and the assertion in accordance with the Description 
-Criteria,
- 
-ensuring
- 
-that
- 
-it
- 
-accurately
- 
-reflects
- 
-the
- 
-system
- 
-as
- 
-designed
- 
-and
- 
-implemented
- 
-throughout
- 
-the
- 
-period.
- 
- 2. Provide the services described, including maintaining appropriate 
-infrastructure,
- 
-software,
- 
-people,
- 
-processes,
- 
-and
- 
-data
- 
-management
- 
-activities
- 
-necessary
- 
-to
- 
-deliver
- 
-the
- 
-services.
- 
- 
- Bright Defense Page No. 2
+Section I – Independent Service Auditor’s Report
+Scope of Examination
+The independent service auditor was engaged to evaluate XYZ Company’s description of its
+[System Name] for the period
+[Start Date] through
+[End Date]
+. The objective of the examination was to determine whether the description conforms to the
+Description Criteria established in
+DC Section 200, 2018
+Description Criteria for a
+Description of a
+Service Organization’s
+System in a
+SOC 2® Report and to assess whether the controls described were suitably designed and operated effectively to meet the
+Trust Services Criteria for
+Security, Availability, Processing
+Integrity, Confidentiality, and
+Privacy. The auditor reviewed policies, procedures, and control activities and evaluated whether the system description included all relevant aspects of the environment that support the services provided.
+Service Organization’s Responsibilities
+XYZ Company’s management bears full responsibility for the completeness and accuracy of the system description, for designing, implementing, and operating effective controls, and for achieving service commitments and system requirements.
+Management must:
+1. Prepare the description and the assertion in accordance with the Description
+Criteria, ensuring that it accurately reflects the system as designed and implemented throughout the period.
+2. Provide the services described, including maintaining appropriate infrastructure, software, people, processes, and data management activities necessary to deliver the services.
+Bright Defense Page No. 2
 
-3. Select the applicable Trust Services Criteria relevant to its operations and state 
-the
- 
-corresponding
- 
-controls
- 
-in
- 
-the
- 
-description.
- 
- 4. Identify risks that threaten the achievement of service commitments and 
-system
- 
-requirements,
- 
-and
- 
-design
- 
-controls
- 
-to
- 
-address
- 
-those
- 
-risks.
- 
- 
-In short, XYZ Company must ensure the system description is complete and accurate 
-and
- 
-that
- 
-the
- 
-controls
- 
-described
- 
-are
- 
-both
- 
-suitable
- 
-and
- 
-operating
- 
-effectively.
- 
-Service Auditor’s Responsibilities 
-The service auditor’s responsibility is to express an opinion on the fairness of the 
-description
- 
-and
- 
-the
- 
-suitability
- 
-of
- 
-the
- 
-design
- 
-and
- 
-operating
- 
-effectiveness
- 
-of
- 
-controls.
- 
-The
- 
-auditor
- 
-performed
- 
-procedures
- 
-to
- 
-obtain
- 
-reasonable
- 
-assurance
- 
-that:
- 
-● The description was prepared in conformity with the Description Criteria and 
-presents
- 
-the
- 
-system
- 
-accurately.
- 
- ● The controls were suitably designed to provide reasonable assurance that the 
-company’s
- 
-service
- 
-commitments
- 
-and
- 
-system
- 
-requirements
- 
-would
- 
-be
- 
-achieved
- 
-if
- 
-the
- 
-controls
- 
-operated
- 
-effectively
- 
-throughout
- 
-the
- 
-period
- 
-and
- 
-if
- 
-complementary
- 
-controls
- 
-at
- 
-subservice
- 
-organizations
- 
-and
- 
-user
- 
-entities
- 
-were
- 
-in
- 
-place.
- 
- ● The controls operated effectively during the period to achieve the service 
-commitments
- 
-and
- 
-syste
+3. Select the applicable Trust Services Criteria relevant to its operations and state the corresponding controls in the description.
+4. Identify risks that threaten the achievement of service commitments and system requirements, and design controls to address those risks.
+In short, XYZ Company must ensure the system description is complete and accurate and that the controls described are both suitable and operating effectively.
+Service Auditor’s Responsibilities
+The service auditor’s responsibility is to express an opinion on the fairness of the description and the suitability of the design and operating effectiveness of controls.
+The auditor performed procedures to obtain reasonable assurance that:
+● The description was prepared in conformity with the Description Criteria and presents the system accurately.
+● The controls were suitably designed to provide reasonable assurance that the company’s service commitments and system requirements would be achieved if the controls operated effectively throughout the period and if complementary controls at subservice organizations and user entities were in place.
+● The controls operated effectively during the period to achieve the service commitments and system requirements.
+To meet these objectives, the auditor planned and performed tests in accordance with
+AICPA attestation standards, which require independence, professional judgment, and obtaining sufficient appropriate evidence.
+Evidence was gathered through inquiry, observation, inspection of documents and reports, and re
+‑ performance of control activities.
+Inherent Limitations and Projection to Future Periods
+Bright Defense Page No. 3
+
+Internal control systems, by their nature, have inherent limitations. Even with effe
 
 ## Chunk 1
 ### extractor
 ---
-last_run: "2026-04-07T14:52:54Z"
+last_run: "2026-04-07T19:12:54Z"
 ---
 ## Stage C Final Markdown
 ## Stage B Executive Refinement
@@ -534,17 +70,17 @@ last_run: "2026-04-07T14:52:54Z"
 Reference overlap terms: none detected
 
 ### reviewer
-Found TODO markers needing resolution. Reference alignment terms detected: 43.
+Found TODO markers needing resolution. Reference alignment terms detected: 44.
 
 ### analyst
-Word count: 226; unique terms: 126; shared-with-assets: 43/451.
+Word count: 226; unique terms: 126; shared-with-assets: 44/484.
 
 ### legal-risk
 Potential obligations/risks:
 - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to individually as a “Party” and collectively as the “Pz
 
 ### synthesizer
-Summary preview: --- last_run: "2026-04-07T14:52:54Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v9" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v9.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-07T19:12:54Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v9" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v9.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Reference anchors: accordance, agree, agreement, and, are, below, between, business, can, company
 
@@ -559,10 +95,10 @@ Operative Terms The Parties agree as follows: 1, These terms have the following 
 Reference overlap terms: agree, agreement, all, and, any, are, assets, business, confidential, connection, copies, data
 
 ### reviewer
-Reference alignment terms detected: 57.
+Reference alignment terms detected: 59.
 
 ### analyst
-Word count: 216; unique terms: 141; shared-with-assets: 57/451.
+Word count: 216; unique terms: 141; shared-with-assets: 59/484.
 
 ### legal-risk
 No explicit obligation or risk clauses detected in this chunk.
@@ -583,10 +119,10 @@ Reference anchors: agree, agreement, all, and, any, are, assets, business, confi
 Reference overlap terms: affiliates, agents, agrees, and, confidential, disclosing, employees, for, forth, has, information, its
 
 ### reviewer
-Reference alignment terms detected: 54.
+Reference alignment terms detected: 55.
 
 ### analyst
-Word count: 250; unique terms: 114; shared-with-assets: 54/451.
+Word count: 250; unique terms: 114; shared-with-assets: 55/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -608,7 +144,7 @@ Reference overlap terms: agreement, agrees, and, any, business, company, confide
 Reference alignment terms detected: 39.
 
 ### analyst
-Word count: 208; unique terms: 113; shared-with-assets: 39/451.
+Word count: 208; unique terms: 113; shared-with-assets: 39/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -629,10 +165,10 @@ ant to purchase or otherwise hypothecating transferring for value, directly or i
 Reference overlap terms: affiliates, agreement, and, any, are, assets, business, company, date, defined, directly, for
 
 ### reviewer
-Reference alignment terms detected: 40.
+Reference alignment terms detected: 41.
 
 ### analyst
-Word count: 270; unique terms: 128; shared-with-assets: 40/451.
+Word count: 270; unique terms: 128; shared-with-assets: 41/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -652,10 +188,10 @@ manner, directly or indirectly, without the prior written approval of the Compan
 Reference overlap terms: above, affiliates, and, any, are, company, confidential, directly, during, efforts, forth, from
 
 ### reviewer
-Reference alignment terms detected: 32.
+Reference alignment terms detected: 34.
 
 ### analyst
-Word count: 149; unique terms: 77; shared-with-assets: 32/451.
+Word count: 149; unique terms: 77; shared-with-assets: 34/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -677,7 +213,7 @@ Reference overlap terms: above, agreement, all, and, any, assets, company, confi
 Reference alignment terms detected: 48.
 
 ### analyst
-Word count: 296; unique terms: 129; shared-with-assets: 48/451.
+Word count: 296; unique terms: 129; shared-with-assets: 48/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -699,7 +235,7 @@ Reference overlap terms: affiliates, agreement, and, any, appropriate, confident
 Reference alignment terms detected: 50.
 
 ### analyst
-Word count: 225; unique terms: 121; shared-with-assets: 50/451.
+Word count: 225; unique terms: 121; shared-with-assets: 50/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -725,7 +261,7 @@ Reference overlap terms: accuracy, agreement, agrees, all, and, any, are, betwee
 Reference alignment terms detected: 63.
 
 ### analyst
-Word count: 273; unique terms: 142; shared-with-assets: 63/451.
+Word count: 273; unique terms: 142; shared-with-assets: 63/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -746,10 +282,10 @@ of the Opportunity; provided that the foregoing shall not prohibit general emplo
 Reference overlap terms: agreement, agrees, and, any, are, company, confidential, determine, disclose, disclosure, employees, entered
 
 ### reviewer
-Reference alignment terms detected: 48.
+Reference alignment terms detected: 49.
 
 ### analyst
-Word count: 279; unique terms: 128; shared-with-assets: 48/451.
+Word count: 279; unique terms: 128; shared-with-assets: 49/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -774,7 +310,7 @@ Reference overlap terms: addition, agreement, agrees, all, and, any, applicable,
 Reference alignment terms detected: 62.
 
 ### analyst
-Word count: 261; unique terms: 138; shared-with-assets: 62/451.
+Word count: 261; unique terms: 138; shared-with-assets: 62/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -796,10 +332,10 @@ not an adequate remedy, and that the other Party shall therefore be entitled (wi
 Reference overlap terms: addition, address, agree, agreement, all, and, any, available, document, effective, except, for
 
 ### reviewer
-Reference alignment terms detected: 40.
+Reference alignment terms detected: 42.
 
 ### analyst
-Word count: 255; unique terms: 120; shared-with-assets: 40/451.
+Word count: 255; unique terms: 120; shared-with-assets: 42/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -825,10 +361,10 @@ Accepted and Agreed as of Feb. 8, 2011 by: “Counterparty”
 Reference overlap terms: agree, agreement, all, and, any, company, corporation, full, governmental, has, hereunder, may
 
 ### reviewer
-Reference alignment terms detected: 38.
+Reference alignment terms detected: 39.
 
 ### analyst
-Word count: 274; unique terms: 175; shared-with-assets: 38/451.
+Word count: 274; unique terms: 175; shared-with-assets: 39/484.
 
 ### legal-risk
 Potential obligations/risks:
@@ -850,13 +386,13 @@ By: — /s/ Robert D. Woltil Name: Robert D. Woltil Title: VP Finance, CFO and S
 Company’s Address:
 5250 140th Avenue North Clearwater, Florida 33760 Attention: Owen Farren, President and Chief Executive Officer
 
-Reference overlap terms: address, and, company, corporation, name
+Reference overlap terms: address, and, company, corporation, name, research
 
 ### reviewer
-Reference alignment terms detected: 5.
+Reference alignment terms detected: 6.
 
 ### analyst
-Word count: 54; unique terms: 44; shared-with-assets: 5/451.
+Word count: 54; unique terms: 44; shared-with-assets: 6/484.
 
 ### legal-risk
 No explicit obligation or risk clauses detected in this chunk.
@@ -864,4 +400,4 @@ No explicit obligation or risk clauses detected in this chunk.
 ### synthesizer
 Summary preview: y Yetman, President and Chief Executive Officer “Company” TECHNOLOGY RESEARCH CORPORATION By: — /s/ Robert D. Woltil Name: Robert D. Woltil Title: VP Finance, CFO and Secretary Company’s Address: 5250 140th Avenue North Clearwater, Florida 33760 Attention: Owen Farren, President and Chief Executive Officer ### Stage A Notes - Lines: 93 - Flags: 0
 
-Reference anchors: address, and, company, corporation, name
+Reference anchors: address, and, company, corporation, name, research

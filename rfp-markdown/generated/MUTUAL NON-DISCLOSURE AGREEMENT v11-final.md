@@ -1,13 +1,13 @@
 ---
-title: "MUTUAL NON-DISCLOSURE AGREEMENT v9-final.md"
-source: "MUTUAL NON-DISCLOSURE AGREEMENT v9-final.md"
-last_run: "2026-04-07T19:13:07Z"
+title: "MUTUAL NON-DISCLOSURE AGREEMENT v11-final.md"
+source: "MUTUAL NON-DISCLOSURE AGREEMENT v11-final.md"
+last_run: "2026-04-07T19:11:49Z"
 ---
 
-# Final Synthesized Output: MUTUAL NON-DISCLOSURE AGREEMENT v9-final.md
+# Final Synthesized Output: MUTUAL NON-DISCLOSURE AGREEMENT v11-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-07T19:12:54Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v9" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v9.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-07T19:11:36Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v11" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v11.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Reference anchors: accordance, agree, agreement, and, are, below, between, business, can, company
 
