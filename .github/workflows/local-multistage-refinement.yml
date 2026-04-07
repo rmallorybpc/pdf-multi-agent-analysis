@@ -103,58 +103,66 @@ jobs:
 
           # Assets are preprocessed in a dedicated cache step and appended to this context file.
 
+      - name: Install Python dependencies for markdown analysis
+        if: steps.prep.outputs.target_count != '0'
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
+
       - name: Cache assets references for analysis context
+        if: steps.prep.outputs.target_count != '0'
         run: |
           set -euo pipefail
           RUN_DIR="${{ steps.prep.outputs.run_dir }}"
           CONTEXT_FILE="$RUN_DIR/knowledge-context.md"
           CACHE_DIR="$RUN_DIR/assets-cache"
           INDEX_FILE="$CACHE_DIR/assets-index.md"
+          WARNINGS_FILE="$CACHE_DIR/assets-warnings.md"
 
           mkdir -p "$CACHE_DIR"
           : > "$INDEX_FILE"
+          : > "$WARNINGS_FILE"
 
           if [[ ! -d assets ]]; then
             exit 0
           fi
 
-          echo "# assets cache" >> "$INDEX_FILE"
+          RUN_DIR="$RUN_DIR" CACHE_DIR="$CACHE_DIR" INDEX_FILE="$INDEX_FILE" WARNINGS_FILE="$WARNINGS_FILE" python - <<'PY'
+import os
+from pathlib import Path
 
-          while IFS= read -r src; do
-            rel="${src#assets/}"
-            safe="${rel//\//__}"
-            out="$CACHE_DIR/${safe}.txt"
+from pdf_multi_agent_analysis.assets_context import write_assets_cache
 
-            {
-              echo "# source: $src"
-              echo ""
-            } > "$out"
+run_dir = Path(os.environ["RUN_DIR"])
+cache_dir = Path(os.environ["CACHE_DIR"])
+index_file = Path(os.environ["INDEX_FILE"])
+warnings_file = Path(os.environ["WARNINGS_FILE"])
 
-            case "$src" in
-              *.md|*.txt|*.json|*.yaml|*.yml)
-                cat "$src" >> "$out"
-                ;;
-              *.pdf)
-                if command -v pdftotext >/dev/null 2>&1; then
-                  pdftotext "$src" - 2>/dev/null | sed '/^\s*$/d' | head -n 800 >> "$out" || true
-                else
-                  echo "[pdf reference present; pdftotext unavailable on runner]" >> "$out"
-                fi
-                ;;
-              *.docx)
-                if command -v docx2txt >/dev/null 2>&1; then
-                  docx2txt "$src" - 2>/dev/null | head -n 800 >> "$out" || true
-                else
-                  echo "[docx reference present; docx2txt unavailable on runner]" >> "$out"
-                fi
-                ;;
-              *)
-                echo "[unsupported/binary reference file type]" >> "$out"
-                ;;
-            esac
+entries, warnings = write_assets_cache(
+    assets_dir=Path("assets"),
+    cache_dir=cache_dir,
+    max_chars_per_file=4000,
+    pdf_ocr_fallback=True,
+    pdf_ocr_max_pages=6,
+    pdf_min_text_chars=100,
+    pdf_max_single_char_token_ratio=0.40,
+)
 
-            echo "- $src -> ${out#${RUN_DIR}/}" >> "$INDEX_FILE"
-          done < <(find assets -type f | sort)
+index_lines = ["# assets cache"]
+for source, cached_name in entries:
+    index_lines.append(f"- {source} -> {cached_name}")
+index_file.write_text("\n".join(index_lines).strip() + "\n", encoding="utf-8")
+
+if warnings:
+    warning_lines = [f"- WARNING: {warning}" for warning in warnings]
+    warnings_file.write_text("\n".join(warning_lines).strip() + "\n", encoding="utf-8")
+    for warning in warnings:
+        print(f"WARNING: {warning}")
+else:
+    warnings_file.write_text("", encoding="utf-8")
+PY
 
           {
             echo ""
@@ -164,19 +172,19 @@ jobs:
             echo ""
           } >> "$CONTEXT_FILE"
 
+          if [[ -s "$WARNINGS_FILE" ]]; then
+            {
+              echo "## asset extraction warnings"
+              cat "$WARNINGS_FILE"
+              echo ""
+            } >> "$CONTEXT_FILE"
+          fi
+
           while IFS= read -r cached; do
             echo "" >> "$CONTEXT_FILE"
             echo "## cached: ${cached#${RUN_DIR}/}" >> "$CONTEXT_FILE"
             cat "$cached" >> "$CONTEXT_FILE"
           done < <(find "$CACHE_DIR" -type f -name '*.txt' | sort)
-
-      - name: Install Python dependencies for markdown analysis
-        if: steps.prep.outputs.target_count != '0'
-        run: |
-          set -euo pipefail
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install -e .
 
       - name: Run critique, refine, formatting, and Claude cleanup stages
         if: steps.prep.outputs.target_count != '0'

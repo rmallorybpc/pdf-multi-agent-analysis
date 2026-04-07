@@ -10,6 +10,70 @@ import zipfile
 
 TEXT_EXTENSIONS = {".md", ".txt", ".json", ".yaml", ".yml"}
 
+PDF_MIN_TEXT_CHARS_DEFAULT = 100
+PDF_MAX_SINGLE_CHAR_TOKEN_RATIO_DEFAULT = 0.40
+
+
+def _collapse_character_spaced_words(text: str) -> str:
+    # Collapse OCR outputs like "t h e" and "s u i t a b l y" into words.
+    pattern = re.compile(r"(?<!\w)(?:[A-Za-z]\s+){2,}[A-Za-z](?!\w)")
+    previous = None
+    current = text
+    while current != previous:
+        previous = current
+        current = pattern.sub(lambda m: m.group(0).replace(" ", ""), current)
+    return current
+
+
+def _should_join_lines(previous_line: str, next_line: str) -> bool:
+    prev = previous_line.strip()
+    nxt = next_line.strip()
+    if not prev or not nxt:
+        return False
+
+    # Keep hard separators and list-like formatting intact.
+    if prev.endswith(":"):
+        return False
+    if nxt.startswith(("-", "*", ">")) or re.match(r"^\d+[.)]\s", nxt):
+        return False
+
+    prev_tokens = re.findall(r"\b[\w']+\b", prev)
+    prev_token_count = len(prev_tokens)
+    prev_last_token = prev_tokens[-1] if prev_tokens else ""
+    next_starts_sentence = bool(re.match(r"^[a-z0-9(\"']", nxt))
+    next_is_word_start = bool(re.match(r"^[A-Za-z0-9]", nxt))
+
+    # Join short trailing fragments (single-word or short-token line endings)
+    # and hard-wrapped lines that continue a sentence.
+    if prev_token_count <= 2 and len(prev_last_token) <= 12 and next_is_word_start:
+        return True
+
+    if prev.endswith((".", "!", "?")):
+        return False
+
+    return next_starts_sentence
+
+
+def _normalize_column_line_breaks(text: str) -> str:
+    paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
+    normalized: list[str] = []
+
+    for paragraph in paragraphs:
+        lines = [line.strip() for line in paragraph.split("\n") if line.strip()]
+        if not lines:
+            continue
+
+        merged: list[str] = [lines[0]]
+        for line in lines[1:]:
+            if _should_join_lines(merged[-1], line):
+                merged[-1] = f"{merged[-1]} {line}"
+            else:
+                merged.append(line)
+
+        normalized.append("\n".join(merged))
+
+    return "\n\n".join(normalized)
+
 
 def _read_text_file(path: Path, max_chars: int) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")[:max_chars].strip()
@@ -17,13 +81,20 @@ def _read_text_file(path: Path, max_chars: int) -> str:
 
 def _normalize_extracted_text(text: str) -> str:
     text = text.replace("\x00", "")
-    # Collapse character-spaced words commonly emitted by OCR (e.g., "t h e" -> "the").
-    text = re.sub(r"(?<!\w)(?:[A-Za-z]\s+){2,}[A-Za-z](?!\w)", lambda m: m.group(0).replace(" ", ""), text)
-    # Join soft line-wrap hyphenation and single newlines created by column-style layouts.
     text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = _collapse_character_spaced_words(text)
+
+    # Join soft line-wrap hyphenation before broader line-break normalization.
     text = re.sub(r"(?<=\w)-\n(?=\w)", "", text)
-    text = re.sub(r"(?<=[A-Za-z0-9,;:])\n(?=[A-Za-z0-9])", " ", text)
-    text = re.sub(r"[^\S\n]+", " ", text)
+    text = _normalize_column_line_breaks(text)
+
+    # After merging lines, collapse residual character spacing once more.
+    text = _collapse_character_spaced_words(text)
+
+    # Remove excessive token spacing while preserving intended newlines.
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    text = re.sub(r"[ ]+\n", "\n", text)
+    text = re.sub(r"\n[ ]+", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
 
@@ -52,6 +123,10 @@ def _asset_text_quality_failure(
             f"({ratio:.0%} > {max_single_char_token_ratio:.0%})"
         )
     return None
+
+
+def _pdf_extraction_failure_message(path: Path, reason: str) -> str:
+    return f"Asset extraction failed for {path.as_posix()}: {reason}"
 
 
 def _extract_pdf_text_native(path: Path, max_chars: int) -> str:
@@ -196,8 +271,8 @@ def build_assets_context(
     max_chars_per_file: int = 4000,
     pdf_ocr_fallback: bool = False,
     pdf_ocr_max_pages: int = 6,
-    pdf_min_text_chars: int = 100,
-    pdf_max_single_char_token_ratio: float = 0.40,
+    pdf_min_text_chars: int = PDF_MIN_TEXT_CHARS_DEFAULT,
+    pdf_max_single_char_token_ratio: float = PDF_MAX_SINGLE_CHAR_TOKEN_RATIO_DEFAULT,
 ) -> str:
     context, _warnings = build_assets_context_with_warnings(
         assets_dir,
@@ -215,8 +290,8 @@ def build_assets_context_with_warnings(
     max_chars_per_file: int = 4000,
     pdf_ocr_fallback: bool = False,
     pdf_ocr_max_pages: int = 6,
-    pdf_min_text_chars: int = 100,
-    pdf_max_single_char_token_ratio: float = 0.40,
+    pdf_min_text_chars: int = PDF_MIN_TEXT_CHARS_DEFAULT,
+    pdf_max_single_char_token_ratio: float = PDF_MAX_SINGLE_CHAR_TOKEN_RATIO_DEFAULT,
 ) -> tuple[str, list[str]]:
     """Build a deterministic markdown context block from reference assets."""
     if not assets_dir.exists() or not assets_dir.is_dir():
@@ -241,7 +316,7 @@ def build_assets_context_with_warnings(
                 max_single_char_token_ratio=pdf_max_single_char_token_ratio,
             )
             if extraction_warning is not None:
-                warnings.append(f"Asset extraction warning for {rel.as_posix()}: {extraction_warning}")
+                warnings.append(_pdf_extraction_failure_message(rel, extraction_warning))
         elif suffix == ".docx":
             content = _read_docx_file(path, max_chars_per_file)
         else:
@@ -258,3 +333,59 @@ def build_assets_context_with_warnings(
         return "", warnings
 
     return "\n".join(sections).strip() + "\n", warnings
+
+
+def write_assets_cache(
+    assets_dir: Path,
+    cache_dir: Path,
+    max_chars_per_file: int = 4000,
+    pdf_ocr_fallback: bool = False,
+    pdf_ocr_max_pages: int = 6,
+    pdf_min_text_chars: int = PDF_MIN_TEXT_CHARS_DEFAULT,
+    pdf_max_single_char_token_ratio: float = PDF_MAX_SINGLE_CHAR_TOKEN_RATIO_DEFAULT,
+) -> tuple[list[tuple[str, str]], list[str]]:
+    """Write deterministic text cache artifacts and return (source, cache file) entries plus warnings."""
+    if not assets_dir.exists() or not assets_dir.is_dir():
+        return [], []
+
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cache_entries: list[tuple[str, str]] = []
+    warnings: list[str] = []
+
+    for path in sorted(p for p in assets_dir.rglob("*") if p.is_file()):
+        rel = path.relative_to(assets_dir)
+        suffix = path.suffix.lower()
+        safe_name = rel.as_posix().replace("/", "__")
+        out_path = cache_dir / f"{safe_name}.txt"
+        extraction_warning_message: str | None = None
+
+        if suffix in TEXT_EXTENSIONS:
+            content = _read_text_file(path, max_chars_per_file)
+        elif suffix == ".pdf":
+            content, extraction_warning = _read_pdf_file(
+                path,
+                max_chars_per_file,
+                ocr_fallback=pdf_ocr_fallback,
+                ocr_max_pages=pdf_ocr_max_pages,
+                min_text_chars=pdf_min_text_chars,
+                max_single_char_token_ratio=pdf_max_single_char_token_ratio,
+            )
+            if extraction_warning is not None:
+                extraction_warning_message = _pdf_extraction_failure_message(rel, extraction_warning)
+                warnings.append(extraction_warning_message)
+        elif suffix == ".docx":
+            content = _read_docx_file(path, max_chars_per_file)
+        else:
+            content = "[unsupported/binary reference file type]"
+
+        lines = [f"# source: assets/{rel.as_posix()}", ""]
+        if content:
+            lines.append(content)
+
+        if not content and extraction_warning_message is not None:
+            lines.append(f"[ASSET EXTRACTION FAILED] {extraction_warning_message}")
+
+        out_path.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
+        cache_entries.append((f"assets/{rel.as_posix()}", out_path.name))
+
+    return cache_entries, warnings
