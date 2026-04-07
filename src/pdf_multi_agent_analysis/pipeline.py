@@ -2,7 +2,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 
 from .agents import AnalystAgent, ExtractorAgent, LegalRiskAgent, ReviewerAgent, SynthesizerAgent
-from .assets_context import build_assets_context
+from .assets_context import build_assets_context_with_warnings
 from .chunking import chunk_markdown
 from .config import PipelineConfig
 from .converter import pdf_to_markdown
@@ -43,13 +43,26 @@ def _final_output_path(source_name: str) -> Path:
     return FINAL_OUTPUT_DIR / f"{final_stem}.md"
 
 
-def _analyze_markdown(markdown: str, report_title: str, config: PipelineConfig, assets_context: str = "") -> dict:
+def _analyze_markdown(
+    markdown: str,
+    report_title: str,
+    config: PipelineConfig,
+    assets_context: str = "",
+    asset_warnings: list[str] | None = None,
+) -> dict:
     chunks = chunk_markdown(markdown, config.chunk_size_chars, config.overlap_chars)
     agents = [ExtractorAgent(), ReviewerAgent(), AnalystAgent(), LegalRiskAgent(), SynthesizerAgent()]
 
     report_lines = [f"# Analysis Report: {report_title}", ""]
     issues_lines = [f"# Contract Issues Summary: {report_title}", ""]
     synthesized_sections: list[str] = []
+    warnings = asset_warnings or []
+    if warnings:
+        report_lines.append("## Asset Extraction Warnings")
+        for warning in warnings:
+            report_lines.append(f"- WARNING: {warning}")
+        report_lines.append("")
+
     if assets_context.strip():
         report_lines.append("## Reference Assets")
         report_lines.append(assets_context[:4000].strip())
@@ -117,15 +130,24 @@ def run_markdown_analysis(
 
     markdown = markdown_path.read_text(encoding="utf-8")
     assets_context = ""
+    asset_warnings: list[str] = []
     if assets_dir is not None:
-        assets_context = build_assets_context(
+        assets_context, asset_warnings = build_assets_context_with_warnings(
             assets_dir,
             max_chars_per_file=cfg.max_asset_chars_per_file,
             pdf_ocr_fallback=cfg.asset_pdf_ocr_fallback,
             pdf_ocr_max_pages=cfg.asset_pdf_ocr_max_pages,
+            pdf_min_text_chars=cfg.asset_pdf_min_text_chars,
+            pdf_max_single_char_token_ratio=cfg.asset_pdf_max_single_char_token_ratio,
         )
 
-    analysis = _analyze_markdown(markdown, markdown_path.name, cfg, assets_context=assets_context)
+    analysis = _analyze_markdown(
+        markdown,
+        markdown_path.name,
+        cfg,
+        assets_context=assets_context,
+        asset_warnings=asset_warnings,
+    )
     report_path = cfg.output_dir / f"{markdown_path.stem}.analysis.md"
     issues_path = cfg.output_dir / f"{markdown_path.stem}.issues.md"
     final_path = _final_output_path(markdown_path.name)
@@ -140,4 +162,5 @@ def run_markdown_analysis(
         "final_path": final_path,
         "chunk_count": analysis["chunk_count"],
         "assets_context_included": bool(assets_context.strip()),
+        "asset_warnings": asset_warnings,
     }

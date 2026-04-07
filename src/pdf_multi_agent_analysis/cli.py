@@ -72,6 +72,8 @@ def main() -> int:
         print(f"Wrote issues summary: {result['issues_path']}")
         print(f"Chunks analyzed: {result['chunk_count']}")
         print(f"Assets context included: {result['assets_context_included']}")
+        for warning in result.get("asset_warnings", []):
+            print(f"WARNING: {warning}")
         return 0
 
     cfg = PipelineConfig(

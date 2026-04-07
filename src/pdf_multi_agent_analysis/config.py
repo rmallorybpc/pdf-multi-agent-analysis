@@ -12,3 +12,5 @@ class PipelineConfig:
     max_asset_chars_per_file: int = 4000
     asset_pdf_ocr_fallback: bool = True
     asset_pdf_ocr_max_pages: int = 6
+    asset_pdf_min_text_chars: int = 100
+    asset_pdf_max_single_char_token_ratio: float = 0.40
