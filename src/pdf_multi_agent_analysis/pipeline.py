@@ -1,4 +1,5 @@
 from pathlib import Path
+from datetime import datetime, timezone
 
 from .agents import AnalystAgent, ExtractorAgent, LegalRiskAgent, ReviewerAgent, SynthesizerAgent
 from .assets_context import build_assets_context
@@ -7,12 +8,48 @@ from .config import PipelineConfig
 from .converter import pdf_to_markdown
 
 
+FINAL_OUTPUT_DIR = Path("rfp-markdown/generated")
+
+
+def _utc_now_iso() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _build_final_markdown(report_title: str, source_label: str, synthesized_sections: list[str]) -> str:
+    chunks = [section.strip() for section in synthesized_sections if section.strip()]
+    body_lines = [f"# Final Synthesized Output: {report_title}", ""]
+    if not chunks:
+        body_lines.append("No synthesized output was generated.")
+    else:
+        for i, section in enumerate(chunks, start=1):
+            body_lines.append(f"## Chunk {i}")
+            body_lines.append(section)
+            body_lines.append("")
+
+    frontmatter = [
+        "---",
+        f'title: "{report_title.replace("\"", "\\\"")}"',
+        f'source: "{source_label.replace("\"", "\\\"")}"',
+        f'last_run: "{_utc_now_iso()}"',
+        "---",
+        "",
+    ]
+    return "\n".join(frontmatter + body_lines).strip() + "\n"
+
+
+def _final_output_path(source_name: str) -> Path:
+    stem = Path(source_name).stem
+    final_stem = stem if stem.endswith("-final") else f"{stem}-final"
+    return FINAL_OUTPUT_DIR / f"{final_stem}.md"
+
+
 def _analyze_markdown(markdown: str, report_title: str, config: PipelineConfig, assets_context: str = "") -> dict:
     chunks = chunk_markdown(markdown, config.chunk_size_chars, config.overlap_chars)
     agents = [ExtractorAgent(), ReviewerAgent(), AnalystAgent(), LegalRiskAgent(), SynthesizerAgent()]
 
     report_lines = [f"# Analysis Report: {report_title}", ""]
     issues_lines = [f"# Contract Issues Summary: {report_title}", ""]
+    synthesized_sections: list[str] = []
     if assets_context.strip():
         report_lines.append("## Reference Assets")
         report_lines.append(assets_context[:4000].strip())
@@ -29,12 +66,15 @@ def _analyze_markdown(markdown: str, report_title: str, config: PipelineConfig, 
                 issues_lines.append(f"## Chunk {i}")
                 issues_lines.append(result.content)
                 issues_lines.append("")
+            if result.agent_name == "synthesizer":
+                synthesized_sections.append(result.content)
 
     report = "\n".join(report_lines).strip() + "\n"
     issues_report = "\n".join(issues_lines).strip() + "\n"
     return {
         "report": report,
         "issues_report": issues_report,
+        "final_markdown": _build_final_markdown(report_title, report_title, synthesized_sections),
         "chunk_count": len(chunks),
     }
 
@@ -51,13 +91,17 @@ def run_pipeline(pdf_path: Path, config: PipelineConfig | None = None) -> dict:
     analysis = _analyze_markdown(markdown, pdf_path.name, cfg)
     report_path = cfg.output_dir / f"{pdf_path.stem}.analysis.md"
     issues_path = cfg.output_dir / f"{pdf_path.stem}.issues.md"
+    final_path = _final_output_path(pdf_path.name)
+    final_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(analysis["report"], encoding="utf-8")
     issues_path.write_text(analysis["issues_report"], encoding="utf-8")
+    final_path.write_text(analysis["final_markdown"], encoding="utf-8")
 
     return {
         "markdown_path": md_path,
         "report_path": report_path,
         "issues_path": issues_path,
+        "final_path": final_path,
         "chunk_count": analysis["chunk_count"],
     }
 
@@ -84,12 +128,16 @@ def run_markdown_analysis(
     analysis = _analyze_markdown(markdown, markdown_path.name, cfg, assets_context=assets_context)
     report_path = cfg.output_dir / f"{markdown_path.stem}.analysis.md"
     issues_path = cfg.output_dir / f"{markdown_path.stem}.issues.md"
+    final_path = _final_output_path(markdown_path.name)
+    final_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(analysis["report"], encoding="utf-8")
     issues_path.write_text(analysis["issues_report"], encoding="utf-8")
+    final_path.write_text(analysis["final_markdown"], encoding="utf-8")
 
     return {
         "report_path": report_path,
         "issues_path": issues_path,
+        "final_path": final_path,
         "chunk_count": analysis["chunk_count"],
         "assets_context_included": bool(assets_context.strip()),
     }

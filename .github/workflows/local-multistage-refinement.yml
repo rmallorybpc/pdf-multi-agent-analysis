@@ -6,6 +6,9 @@ on:
       - rfp-markdown/**/*.md
       - '!rfp-markdown/generated/**/*.md'
       - '!rfp-markdown/audit/**'
+      - prompts/**
+      - src/**
+      - .github/workflows/local-multistage-refinement.yml
   workflow_run:
     workflows:
       - convert-rfp-pdf-to-markdown
@@ -327,6 +330,21 @@ jobs:
             return 0
           }
 
+          write_final_with_last_run() {
+            local in_file="$1"
+            local out_file="$2"
+            local run_ts
+            run_ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+            {
+              echo "---"
+              echo "last_run: \"${run_ts}\""
+              echo "---"
+              echo ""
+              cat "$in_file"
+            } > "$out_file"
+          }
+
           if ! while IFS= read -r target; do
             [[ -z "$target" ]] && continue
             [[ ! -f "$target" ]] && continue
@@ -397,7 +415,7 @@ jobs:
               fi
 
               final_out="rfp-markdown/generated/${stem}-final.md"
-              cp "$stage_d_md" "$final_out"
+              write_final_with_last_run "$stage_d_md" "$final_out"
               LAST_SUCCESS="$final_out"
               echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
               success=1
