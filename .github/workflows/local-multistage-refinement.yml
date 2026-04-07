@@ -129,40 +129,40 @@ jobs:
             exit 0
           fi
 
-            RUN_DIR="$RUN_DIR" CACHE_DIR="$CACHE_DIR" INDEX_FILE="$INDEX_FILE" WARNINGS_FILE="$WARNINGS_FILE" python - <<'PY'
-            import os
-            from pathlib import Path
+          RUN_DIR="$RUN_DIR" CACHE_DIR="$CACHE_DIR" INDEX_FILE="$INDEX_FILE" WARNINGS_FILE="$WARNINGS_FILE" python - <<'PY'
+          import os
+          from pathlib import Path
 
-            from pdf_multi_agent_analysis.assets_context import write_assets_cache
+          from pdf_multi_agent_analysis.assets_context import write_assets_cache
 
-            run_dir = Path(os.environ["RUN_DIR"])
-            cache_dir = Path(os.environ["CACHE_DIR"])
-            index_file = Path(os.environ["INDEX_FILE"])
-            warnings_file = Path(os.environ["WARNINGS_FILE"])
+          run_dir = Path(os.environ["RUN_DIR"])
+          cache_dir = Path(os.environ["CACHE_DIR"])
+          index_file = Path(os.environ["INDEX_FILE"])
+          warnings_file = Path(os.environ["WARNINGS_FILE"])
 
-            entries, warnings = write_assets_cache(
-              assets_dir=Path("assets"),
-              cache_dir=cache_dir,
-              max_chars_per_file=4000,
-              pdf_ocr_fallback=True,
-              pdf_ocr_max_pages=6,
-              pdf_min_text_chars=100,
-              pdf_max_single_char_token_ratio=0.40,
-            )
+          entries, warnings = write_assets_cache(
+            assets_dir=Path("assets"),
+            cache_dir=cache_dir,
+            max_chars_per_file=4000,
+            pdf_ocr_fallback=True,
+            pdf_ocr_max_pages=6,
+            pdf_min_text_chars=100,
+            pdf_max_single_char_token_ratio=0.40,
+          )
 
-            index_lines = ["# assets cache"]
-            for source, cached_name in entries:
-              index_lines.append(f"- {source} -> {cached_name}")
-            index_file.write_text("\n".join(index_lines).strip() + "\n", encoding="utf-8")
+          index_lines = ["# assets cache"]
+          for source, cached_name in entries:
+            index_lines.append(f"- {source} -> {cached_name}")
+          index_file.write_text("\n".join(index_lines).strip() + "\n", encoding="utf-8")
 
-            if warnings:
-              warning_lines = [f"- WARNING: {warning}" for warning in warnings]
-              warnings_file.write_text("\n".join(warning_lines).strip() + "\n", encoding="utf-8")
-              for warning in warnings:
-                print(f"WARNING: {warning}")
-            else:
-              warnings_file.write_text("", encoding="utf-8")
-            PY
+          if warnings:
+            warning_lines = [f"- WARNING: {warning}" for warning in warnings]
+            warnings_file.write_text("\n".join(warning_lines).strip() + "\n", encoding="utf-8")
+            for warning in warnings:
+              print(f"WARNING: {warning}")
+          else:
+            warnings_file.write_text("", encoding="utf-8")
+          PY
 
           {
             echo ""
