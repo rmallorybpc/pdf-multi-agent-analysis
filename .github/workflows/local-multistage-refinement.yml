@@ -170,6 +170,14 @@ jobs:
             cat "$cached" >> "$CONTEXT_FILE"
           done < <(find "$CACHE_DIR" -type f -name '*.txt' | sort)
 
+      - name: Install Python dependencies for markdown analysis
+        if: steps.prep.outputs.target_count != '0'
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -e .
+
       - name: Run critique, refine, formatting, and Claude cleanup stages
         if: steps.prep.outputs.target_count != '0'
         env:
@@ -416,6 +424,12 @@ jobs:
 
               final_out="rfp-markdown/generated/${stem}-final.md"
               write_final_with_last_run "$stage_d_md" "$final_out"
+
+              python -m pdf_multi_agent_analysis.cli analyze-markdown \
+                "$final_out" \
+                --assets-dir assets \
+                --out-dir rfp-markdown/generated
+
               LAST_SUCCESS="$final_out"
               echo "$LAST_SUCCESS" > "$RUN_DIR/last-success-artifact.txt"
               success=1
@@ -455,8 +469,10 @@ jobs:
           set -euo pipefail
           RUN_DIR="${{ steps.prep.outputs.run_dir }}"
 
-          # Stage first so newly created generated files are included in the change check.
-          git add rfp-markdown/generated
+          # Stage final markdown plus companion analysis outputs in one commit.
+          find rfp-markdown/generated -type f \
+            \( -name '*-final.md' -o -name '*-final.analysis.md' -o -name '*-final.issues.md' \) \
+            -print0 | xargs -0 -r git add
 
           if git diff --cached --quiet -- rfp-markdown/generated; then
             echo "No generated markdown changes to commit."
