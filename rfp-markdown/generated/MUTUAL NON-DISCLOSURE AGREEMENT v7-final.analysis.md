@@ -1,4 +1,4 @@
-# Analysis Report: MUTUAL NON-DISCLOSURE AGREEMENT-final.md
+# Analysis Report: MUTUAL NON-DISCLOSURE AGREEMENT v7-final.md
 
 ## Reference Assets
 # Assets Context
@@ -479,7 +479,7 @@ requirements
 ## Chunk 1
 ### extractor
 ---
-last_run: "2026-04-07T14:24:06Z"
+last_run: "2026-04-07T14:23:53Z"
 ---
 ## Stage C Final Markdown
 ## Stage B Executive Refinement
@@ -490,14 +490,14 @@ Reference overlap terms: none detected
 Found TODO markers needing resolution. Reference alignment terms detected: 43.
 
 ### analyst
-Word count: 222; unique terms: 126; shared-with-assets: 43/449.
+Word count: 226; unique terms: 126; shared-with-assets: 43/449.
 
 ### legal-risk
 Potential obligations/risks:
 - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to individually as a “Party” and collectively as the “Pz
 
 ### synthesizer
-Summary preview: --- last_run: "2026-04-07T14:24:06Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-07T14:23:53Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v7" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v7.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Reference anchors: accordance, agree, agreement, and, are, below, between, business, can, company
 
