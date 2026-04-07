@@ -1,13 +1,13 @@
 ---
 title: "MUTUAL NON-DISCLOSURE AGREEMENT v4-final.md"
 source: "MUTUAL NON-DISCLOSURE AGREEMENT v4-final.md"
-last_run: "2026-04-07T14:40:25Z"
+last_run: "2026-04-07T14:52:13Z"
 ---
 
 # Final Synthesized Output: MUTUAL NON-DISCLOSURE AGREEMENT v4-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-07T14:40:12Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v4" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v4.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-07T14:52:01Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v4" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v4.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Reference anchors: accordance, agree, agreement, and, are, below, between, business, can, company
 
