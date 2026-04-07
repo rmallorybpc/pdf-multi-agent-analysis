@@ -1,13 +1,13 @@
 ---
 title: "MUTUAL NON-DISCLOSURE AGREEMENT v4-final.md"
 source: "MUTUAL NON-DISCLOSURE AGREEMENT v4-final.md"
-last_run: "2026-04-07T14:23:26Z"
+last_run: "2026-04-07T14:40:25Z"
 ---
 
 # Final Synthesized Output: MUTUAL NON-DISCLOSURE AGREEMENT v4-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-07T14:23:13Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v4" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v4.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-07T14:40:12Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v4" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v4.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Reference anchors: accordance, agree, agreement, and, are, below, between, business, can, company
 
@@ -69,7 +69,7 @@ Reference anchors: addition, address, agree, agreement, all, and, any, available
 ## Chunk 13
 Summary preview: irrevocably and unconditionally waive and agree not to plead or claim in any such court that any such action, suit or proceeding brought in any such court has been brought in an inconvenient forum. 13. Neither the failure nor delay by any Party in exercising any right hereunder will operate as a waiver of such right, and no single or partial exercise of a right will preclude any other or further exercise of such right.
 
-Reference anchors: address, agree, agreement, all, and, any, company, corporation, found, full
+Reference anchors: address, agree, agreement, all, and, any, company, corporation, full, governmental
 
 ## Chunk 14
 Summary preview: y Yetman, President and Chief Executive Officer “Company” TECHNOLOGY RESEARCH CORPORATION By: — /s/ Robert D. Woltil Name: Robert D. Woltil Title: VP Finance, CFO and Secretary Company’s Address: 5250 140th Avenue North Clearwater, Florida 33760 Attention: Owen Farren, President and Chief Executive Officer ### Stage A Notes - Lines: 93 - Flags: 0

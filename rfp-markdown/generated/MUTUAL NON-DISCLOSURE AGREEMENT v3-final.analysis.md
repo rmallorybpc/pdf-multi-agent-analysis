@@ -1,22 +1,14 @@
 # Analysis Report: MUTUAL NON-DISCLOSURE AGREEMENT v3-final.md
 
+## Asset Extraction Warnings
+- WARNING: Asset extraction warning for MUTUAL NON-DISCLOSURE AGREEMENT.pdf: no extractable text found with native extraction or OCR fallback
+- WARNING: Asset extraction warning for Real-World SOC 2 Report Example.pdf: no extractable text found with native extraction or OCR fallback
+
 ## Reference Assets
 # Assets Context
 
-## MUTUAL NON-DISCLOSURE AGREEMENT.pdf
-[pdf reference present; no extractable text found with native extraction or OCR fallback]
-
-## Real-World SOC 2 Report Example.pdf
-[pdf reference present; no extractable text found with native extraction or OCR fallback]
-
 ## SOC-2-Type-2-Report-Example.pdf
-This report presents a n independent examination o f XYZ
-Company ’ s description o f t h e [ System Name ] a n d an
-assessment o f whether t h e r e la t e d contro ls were
-suitab ly designed a n d operated effective ly in
-accordance with t h e a p p li c a b le Trust Services Criteria
-throughout t h e period from [ Start Date ] t o [ E n d Date ] , as
-specified i n t h e report documentation
+ThisreportpresentsanindependentexaminationofXYZ Company ’ sdescriptionofthe [ SystemName ] andan assessmentofwhetherthere la tedcontro ls were suitab ly designedandoperatedeffective ly in accordancewiththeapp li cab le TrustServicesCriteria throughouttheperiodfrom [ StartDate ] t o [ EndDate ] , as specifiedinthereportdocumentation
 
 SOC 2 Type 2 Report for XYZ 
 Company
@@ -475,11 +467,66 @@ and
 system
  
 requirements
+ 
+would
+ 
+be
+ 
+achieved
+ 
+if
+ 
+the
+ 
+controls
+ 
+operated
+ 
+effectively
+ 
+throughout
+ 
+the
+ 
+period
+ 
+and
+ 
+if
+ 
+complementary
+ 
+controls
+ 
+at
+ 
+subservice
+ 
+organizations
+ 
+and
+ 
+user
+ 
+entities
+ 
+were
+ 
+in
+ 
+place.
+ 
+ ● The controls operated effectively during the period to achieve the service 
+commitments
+ 
+and
+ 
+syste
 
 ## Chunk 1
 ### extractor
 ---
-last_run: "2026-04-07T14:23:00Z"
+last_run: "2026-04-07T14:39:58Z"
 ---
 ## Stage C Final Markdown
 ## Stage B Executive Refinement
@@ -490,14 +537,14 @@ Reference overlap terms: none detected
 Found TODO markers needing resolution. Reference alignment terms detected: 43.
 
 ### analyst
-Word count: 226; unique terms: 126; shared-with-assets: 43/449.
+Word count: 226; unique terms: 126; shared-with-assets: 43/451.
 
 ### legal-risk
 Potential obligations/risks:
 - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to individually as a “Party” and collectively as the “Pz
 
 ### synthesizer
-Summary preview: --- last_run: "2026-04-07T14:23:00Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v3" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v3.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-07T14:39:58Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v3" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v3.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Reference anchors: accordance, agree, agreement, and, are, below, between, business, can, company
 
@@ -512,10 +559,10 @@ Operative Terms The Parties agree as follows: 1, These terms have the following 
 Reference overlap terms: agree, agreement, all, and, any, are, assets, business, confidential, connection, copies, data
 
 ### reviewer
-Reference alignment terms detected: 56.
+Reference alignment terms detected: 57.
 
 ### analyst
-Word count: 216; unique terms: 141; shared-with-assets: 56/449.
+Word count: 216; unique terms: 141; shared-with-assets: 57/451.
 
 ### legal-risk
 No explicit obligation or risk clauses detected in this chunk.
@@ -539,7 +586,7 @@ Reference overlap terms: affiliates, agents, agrees, and, confidential, disclosi
 Reference alignment terms detected: 54.
 
 ### analyst
-Word count: 250; unique terms: 114; shared-with-assets: 54/449.
+Word count: 250; unique terms: 114; shared-with-assets: 54/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -561,7 +608,7 @@ Reference overlap terms: agreement, agrees, and, any, business, company, confide
 Reference alignment terms detected: 39.
 
 ### analyst
-Word count: 208; unique terms: 113; shared-with-assets: 39/449.
+Word count: 208; unique terms: 113; shared-with-assets: 39/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -582,10 +629,10 @@ ant to purchase or otherwise hypothecating transferring for value, directly or i
 Reference overlap terms: affiliates, agreement, and, any, are, assets, business, company, date, defined, directly, for
 
 ### reviewer
-Reference alignment terms detected: 39.
+Reference alignment terms detected: 40.
 
 ### analyst
-Word count: 270; unique terms: 128; shared-with-assets: 39/449.
+Word count: 270; unique terms: 128; shared-with-assets: 40/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -605,10 +652,10 @@ manner, directly or indirectly, without the prior written approval of the Compan
 Reference overlap terms: above, affiliates, and, any, are, company, confidential, directly, during, efforts, forth, from
 
 ### reviewer
-Reference alignment terms detected: 31.
+Reference alignment terms detected: 32.
 
 ### analyst
-Word count: 149; unique terms: 77; shared-with-assets: 31/449.
+Word count: 149; unique terms: 77; shared-with-assets: 32/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -630,7 +677,7 @@ Reference overlap terms: above, agreement, all, and, any, assets, company, confi
 Reference alignment terms detected: 48.
 
 ### analyst
-Word count: 296; unique terms: 129; shared-with-assets: 48/449.
+Word count: 296; unique terms: 129; shared-with-assets: 48/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -652,7 +699,7 @@ Reference overlap terms: affiliates, agreement, and, any, appropriate, confident
 Reference alignment terms detected: 50.
 
 ### analyst
-Word count: 225; unique terms: 121; shared-with-assets: 50/449.
+Word count: 225; unique terms: 121; shared-with-assets: 50/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -678,7 +725,7 @@ Reference overlap terms: accuracy, agreement, agrees, all, and, any, are, betwee
 Reference alignment terms detected: 63.
 
 ### analyst
-Word count: 273; unique terms: 142; shared-with-assets: 63/449.
+Word count: 273; unique terms: 142; shared-with-assets: 63/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -702,7 +749,7 @@ Reference overlap terms: agreement, agrees, and, any, are, company, confidential
 Reference alignment terms detected: 48.
 
 ### analyst
-Word count: 279; unique terms: 128; shared-with-assets: 48/449.
+Word count: 279; unique terms: 128; shared-with-assets: 48/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -727,7 +774,7 @@ Reference overlap terms: addition, agreement, agrees, all, and, any, applicable,
 Reference alignment terms detected: 62.
 
 ### analyst
-Word count: 261; unique terms: 138; shared-with-assets: 62/449.
+Word count: 261; unique terms: 138; shared-with-assets: 62/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -752,7 +799,7 @@ Reference overlap terms: addition, address, agree, agreement, all, and, any, ava
 Reference alignment terms detected: 40.
 
 ### analyst
-Word count: 255; unique terms: 120; shared-with-assets: 40/449.
+Word count: 255; unique terms: 120; shared-with-assets: 40/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -775,13 +822,13 @@ irrevocably and unconditionally waive and agree not to plead or claim in any suc
 [Counterpart Signatures Follow]
 Accepted and Agreed as of Feb. 8, 2011 by: “Counterparty”
 
-Reference overlap terms: agree, agreement, all, and, any, company, corporation, found, full, governmental, has, hereunder
+Reference overlap terms: agree, agreement, all, and, any, company, corporation, full, governmental, has, hereunder, may
 
 ### reviewer
-Reference alignment terms detected: 39.
+Reference alignment terms detected: 38.
 
 ### analyst
-Word count: 274; unique terms: 175; shared-with-assets: 39/449.
+Word count: 274; unique terms: 175; shared-with-assets: 38/451.
 
 ### legal-risk
 Potential obligations/risks:
@@ -793,7 +840,7 @@ Potential obligations/risks:
 ### synthesizer
 Summary preview: irrevocably and unconditionally waive and agree not to plead or claim in any such court that any such action, suit or proceeding brought in any such court has been brought in an inconvenient forum. 13. Neither the failure nor delay by any Party in exercising any right hereunder will operate as a waiver of such right, and no single or partial exercise of a right will preclude any other or further exercise of such right.
 
-Reference anchors: address, agree, agreement, all, and, any, company, corporation, found, full
+Reference anchors: address, agree, agreement, all, and, any, company, corporation, full, governmental
 
 ## Chunk 14
 ### extractor
@@ -809,7 +856,7 @@ Reference overlap terms: address, and, company, corporation, name
 Reference alignment terms detected: 5.
 
 ### analyst
-Word count: 54; unique terms: 44; shared-with-assets: 5/449.
+Word count: 54; unique terms: 44; shared-with-assets: 5/451.
 
 ### legal-risk
 No explicit obligation or risk clauses detected in this chunk.
