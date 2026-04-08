@@ -33,6 +33,14 @@ def test_ocr_cleanup_reconstructs_run_together_words() -> None:
     assert "description of the controls" in cleaned.lower()
 
 
+def test_ocr_cleanup_reconstructs_first_paragraph_lowercase_runs() -> None:
+    raw = "In this report, xyzcompanysdescriptionofthecontrols are designedandoperatedeffectively."
+    cleaned = _normalize_extracted_text(raw)
+
+    assert "description of the controls" in cleaned.lower()
+    assert "designed and operated effectively" in cleaned.lower()
+
+
 def test_ocr_cleanup_joins_single_word_line_artifacts() -> None:
     raw = "Confidential\nInformation shall\nremain protected"
     cleaned = _normalize_extracted_text(raw)

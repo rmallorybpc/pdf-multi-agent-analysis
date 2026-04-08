@@ -40,8 +40,10 @@ COMMON_WORD_SPLIT_TERMS = {
     "controls",
     "data",
     "description",
+    "designed",
     "document",
     "effective",
+    "effectively",
     "examination",
     "for",
     "from",
@@ -61,6 +63,7 @@ COMMON_WORD_SPLIT_TERMS = {
     "of",
     "on",
     "or",
+    "operated",
     "our",
     "out",
     "presents",
@@ -155,7 +158,7 @@ def _normalize_column_line_breaks(text: str) -> str:
 
 def _split_run_together_token(token: str) -> str:
     lowered = token.lower()
-    if len(lowered) < 20 or not lowered.isalpha():
+    if len(lowered) <= 10 or not lowered.isalpha():
         return token
 
     n = len(lowered)
@@ -207,7 +210,8 @@ def _split_run_together_token(token: str) -> str:
 
 
 def _reconstruct_run_together_words(text: str) -> str:
-    return re.sub(r"\b[A-Za-z]{20,}\b", lambda m: _split_run_together_token(m.group(0)), text)
+    # Repair run-together OCR artifacts across the full text body.
+    return re.sub(r"\b[A-Za-z]{11,}\b", lambda m: _split_run_together_token(m.group(0)), text)
 
 
 def _read_text_file(path: Path, max_chars: int) -> str:

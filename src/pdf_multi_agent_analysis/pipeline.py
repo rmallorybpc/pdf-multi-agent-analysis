@@ -92,6 +92,11 @@ def _normalize_bullet_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _canonicalize_exact_clause_text(text: str) -> str:
+    # Exact-match dedupe key for legal clause extracts: case-insensitive + trim-only.
+    return text.strip().lower()
+
+
 def _canonicalize_bullet_text(text: str) -> str:
     normalized = _normalize_bullet_text(text).lower()
     # Strip punctuation for stable deduplication keys while preserving token order.
@@ -416,33 +421,46 @@ def _build_sectioned_analysis_report(
     lines.append(f"- Chunks processed: {chunk_count}. Sections detected: {len(section_order)}.")
     lines.append("")
 
-    seen_takeaways_global: set[str] = set()
-    seen_actions_global: set[str] = set()
+    seen_legal_risks_global: set[str] = set()
+    seen_reference_assets_takeaways_global: list[str] = []
     deduped_by_section: dict[str, dict[str, list[str]]] = {}
 
     for section_name in section_order:
         bucket = section_buckets[section_name]
+        deduped_legal_risks: list[str] = []
         deduped_takeaways: list[str] = []
         deduped_actions: list[str] = []
+        seen_legal_risks_section: set[str] = set()
         seen_takeaways_section: set[str] = set()
         seen_actions_section: set[str] = set()
 
-        for takeaway in bucket["takeaways"]:
-            if _is_reference_assets_boilerplate(takeaway):
+        for risk in bucket["legal_risks"]:
+            normalized = _normalize_bullet_text(risk)
+            key = _canonicalize_exact_clause_text(normalized)
+            if not normalized or not key:
                 continue
+            if key in seen_legal_risks_section:
+                continue
+            if key in seen_legal_risks_global:
+                continue
+            seen_legal_risks_section.add(key)
+            seen_legal_risks_global.add(key)
+            deduped_legal_risks.append(normalized)
+
+        for takeaway in bucket["takeaways"]:
             _append_unique_bullet(deduped_takeaways, seen_takeaways_section, takeaway)
 
         for action in bucket["actions"]:
             _append_unique_bullet(deduped_actions, seen_actions_section, action)
 
         deduped_by_section[section_name] = {
+            "legal_risks": deduped_legal_risks,
             "takeaways": deduped_takeaways,
             "actions": deduped_actions,
         }
 
     for section_name in section_order:
-        bucket = section_buckets[section_name]
-        legal_risks = bucket["legal_risks"]
+        legal_risks = deduped_by_section[section_name]["legal_risks"]
         takeaways = deduped_by_section[section_name]["takeaways"]
         actions = deduped_by_section[section_name]["actions"]
 
@@ -459,16 +477,17 @@ def _build_sectioned_analysis_report(
         section_takeaways: list[str] = []
         for takeaway in takeaways:
             normalized = _normalize_bullet_text(takeaway)
-            key = _canonicalize_bullet_text(normalized)
-            if not normalized or not key:
-                continue
-            if key in seen_takeaways_global:
+            if not normalized:
                 continue
             if any(_are_near_duplicate_bullets(existing, normalized) for existing in section_takeaways):
                 continue
-            if any(_are_near_duplicate_bullets(existing, normalized) for existing in seen_takeaways_global):
-                continue
-            seen_takeaways_global.add(key)
+            if _is_reference_assets_boilerplate(normalized):
+                if any(
+                    _are_near_duplicate_bullets(existing, normalized)
+                    for existing in seen_reference_assets_takeaways_global
+                ):
+                    continue
+                seen_reference_assets_takeaways_global.append(normalized)
             section_takeaways.append(normalized)
         if section_takeaways:
             lines.append("### Strategic Takeaways")
@@ -479,16 +498,10 @@ def _build_sectioned_analysis_report(
         section_actions: list[str] = []
         for action in actions:
             normalized = _normalize_bullet_text(action)
-            key = _canonicalize_bullet_text(normalized)
-            if not normalized or not key:
-                continue
-            if key in seen_actions_global:
+            if not normalized:
                 continue
             if any(_are_near_duplicate_bullets(existing, normalized) for existing in section_actions):
                 continue
-            if any(_are_near_duplicate_bullets(existing, normalized) for existing in seen_actions_global):
-                continue
-            seen_actions_global.add(key)
             section_actions.append(normalized)
         if section_actions:
             lines.append("### Recommended Next Actions")
