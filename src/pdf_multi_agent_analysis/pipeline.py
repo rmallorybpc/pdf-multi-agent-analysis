@@ -49,6 +49,32 @@ SCORECARD_CATEGORIES: list[tuple[str, tuple[str, ...], tuple[str, ...]]] = [
 
 RISK_ORDER = {"HIGH": 3, "MEDIUM": 2, "LOW": 1, "NOT FOUND": 0}
 
+DEFAULT_FIRST_SECTION_HEADING = "Definitions and Interpretation"
+
+PIPELINE_STAGE_LABELS: tuple[str, ...] = (
+    "Stage C Final Markdown",
+    "Stage B Executive Refinement",
+    "Stage A Notes",
+    "Stage A Critique",
+    "Stage D",
+)
+
+KNOWN_CONTRACT_SECTION_HEADINGS: tuple[str, ...] = (
+    "Definitions",
+    "Definitions and Interpretation",
+    "Services and Fees",
+    "Services",
+    "Term",
+    "Termination",
+    "Confidentiality",
+    "Indemnification",
+    "Limitation of Liability",
+    "Data Protection",
+    "Governing Law",
+    "Notices",
+    "Miscellaneous",
+)
+
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -227,16 +253,16 @@ def _extract_synth_list(synth_content: str, heading: str) -> list[str]:
     for line in collected_lines:
         if line.startswith("- "):
             cleaned = _normalize_bullet_text(line[2:])
-            if cleaned:
+            if cleaned and not _is_pipeline_stage_label(cleaned):
                 bullets.append(cleaned)
         elif re.match(r"^\d+\.\s+", line):
             cleaned = _normalize_bullet_text(re.sub(r"^\d+\.\s+", "", line))
-            if cleaned:
+            if cleaned and not _is_pipeline_stage_label(cleaned):
                 bullets.append(cleaned)
     return bullets
 
 
-def _topic_from_legal_risk(text: str) -> str:
+def _topic_from_legal_risk(text: str) -> str | None:
     lowered = text.lower()
     topics: list[tuple[str, tuple[str, ...]]] = [
         ("Confidentiality and Information Use", ("confidential", "proprietary", "disclos", "non-disclosure", "nondisclosure")),
@@ -247,33 +273,83 @@ def _topic_from_legal_risk(text: str) -> str:
         ("Remedies and Enforcement", ("injunct", "equitable", "specific performance", "waive", "waiver")),
     ]
 
-    best_topic = "General Contract Provisions"
+    best_topic: str | None = None
     best_score = 0
     for label, keywords in topics:
         score = sum(lowered.count(keyword) for keyword in keywords)
         if score > best_score:
             best_topic = label
             best_score = score
+    if best_score <= 0:
+        return None
     return best_topic
+
+
+def _is_pipeline_stage_label(text: str) -> bool:
+    normalized = re.sub(r"\s+", " ", text).strip()
+    if not normalized:
+        return False
+    if re.match(r"^stage\b", normalized, flags=re.IGNORECASE):
+        return True
+    return normalized.lower() in {label.lower() for label in PIPELINE_STAGE_LABELS}
+
+
+def _clean_heading_candidate(text: str | None) -> str | None:
+    if text is None:
+        return None
+
+    heading = re.sub(r"\s+", " ", text).strip().rstrip(":")
+    if not heading or _is_pipeline_stage_label(heading):
+        return None
+
+    numbered_match = re.match(r"^(\d+)\.\s+([A-Z][^\n]{1,200})$", heading)
+    if numbered_match:
+        return f"{numbered_match.group(1)}. {numbered_match.group(2).strip()}"
+
+    if re.match(r"^\d+\.\d+", heading):
+        return None
+
+    for allowed in KNOWN_CONTRACT_SECTION_HEADINGS:
+        if heading.lower() == allowed.lower():
+            return allowed
+
+    return None
+
+
+def _filter_pipeline_stage_lines(text: str) -> str:
+    if not text.strip():
+        return text
+
+    filtered_lines: list[str] = []
+    for line in text.splitlines():
+        if _is_pipeline_stage_label(line.strip()):
+            continue
+        filtered_lines.append(line)
+    return "\n".join(filtered_lines).strip()
 
 
 def _find_heading_candidate(text: str) -> str | None:
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     for line in lines:
+        if line == "---" or re.match(r"^(title|source|last_run)\s*:", line, flags=re.IGNORECASE):
+            continue
+
         detected_match = re.match(r"^Detected section heading:\s*(.+)$", line, flags=re.IGNORECASE)
         if detected_match:
-            heading = detected_match.group(1).strip()
-            if heading:
+            heading = _clean_heading_candidate(detected_match.group(1))
+            if heading is not None:
                 return heading
+            continue
 
         md_match = re.match(r"^#{1,6}\s+(.+)$", line)
         if md_match:
-            heading = md_match.group(1).strip()
-            if heading:
+            heading = _clean_heading_candidate(md_match.group(1))
+            if heading is not None:
                 return heading
+            continue
 
         formal_patterns = [
-            r"^(\d+(?:\.\d+)*)\s*[.)-]?\s+([A-Z][^\n]{2,140})$",
+            r"^(\d+)\.\s+([A-Z][^\n]{2,140})$",
             r"^(Section\s+[A-Za-z0-9.\-]+\s*[:.-]?\s*[^\n]{2,160})$",
             r"^(Article\s+[A-Za-z0-9.\-]+\s*[:.-]?\s*[^\n]{2,160})$",
         ]
@@ -282,8 +358,11 @@ def _find_heading_candidate(text: str) -> str | None:
             if not match:
                 continue
             if len(match.groups()) >= 2:
-                return f"{match.group(1)} {match.group(2).strip()}".strip()
-            return match.group(1).strip()
+                heading = _clean_heading_candidate(f"{match.group(1)}. {match.group(2).strip()}")
+            else:
+                heading = _clean_heading_candidate(match.group(1).strip())
+            if heading is not None:
+                return heading
     return None
 
 
@@ -293,7 +372,7 @@ def _extract_legal_risk_bullets(legal_risk_content: str) -> list[str]:
         line = line.strip()
         if line.startswith("- "):
             cleaned = _normalize_bullet_text(line[2:])
-            if cleaned:
+            if cleaned and not _is_pipeline_stage_label(cleaned):
                 bullets.append(cleaned)
     return bullets
 
@@ -739,13 +818,16 @@ def _analyze_markdown(
                 issues_lines.append(result.content)
                 issues_lines.append("")
 
-        extractor_output = per_agent.get("extractor", "")
+        extractor_output = _filter_pipeline_stage_lines(per_agent.get("extractor", ""))
         heading_candidate = _find_heading_candidate(extractor_output) or _find_heading_candidate(chunk)
         if heading_candidate:
             current_section = heading_candidate
             section_name = heading_candidate
         elif current_section is not None:
             section_name = current_section
+        elif i == 1:
+            section_name = DEFAULT_FIRST_SECTION_HEADING
+            current_section = section_name
         else:
             topic_source = "\n".join(
                 [
@@ -754,7 +836,14 @@ def _analyze_markdown(
                     per_agent.get("synthesizer", ""),
                 ]
             )
-            section_name = _topic_from_legal_risk(topic_source)
+            fallback_topic = _topic_from_legal_risk(topic_source)
+            if fallback_topic and fallback_topic in section_buckets:
+                section_name = fallback_topic
+            elif section_order:
+                section_name = section_order[-1]
+            else:
+                section_name = DEFAULT_FIRST_SECTION_HEADING
+                current_section = section_name
 
         bucket = ensure_section(section_name)
 
@@ -774,7 +863,7 @@ def _analyze_markdown(
             {
                 "chunk_index": str(i),
                 "section_name": section_name,
-                "extractor": per_agent.get("extractor", ""),
+                "extractor": extractor_output,
                 "reviewer": per_agent.get("reviewer", ""),
                 "analyst": per_agent.get("analyst", ""),
                 "synthesizer": per_agent.get("synthesizer", ""),

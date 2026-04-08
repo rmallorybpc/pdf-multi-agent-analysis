@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from pdf_multi_agent_analysis.config import PipelineConfig
-from pdf_multi_agent_analysis.pipeline import _build_sectioned_analysis_report, run_markdown_analysis
+from pdf_multi_agent_analysis import pipeline as pipeline_module
+from pdf_multi_agent_analysis.pipeline import _analyze_markdown, _build_sectioned_analysis_report, _find_heading_candidate, run_markdown_analysis
 
 
 def test_run_markdown_analysis_with_assets(tmp_path: Path) -> None:
@@ -186,3 +187,77 @@ def test_sectioned_report_omits_empty_strategic_subsections() -> None:
     assert "- Clause has unilateral injunctive remedy language." in section_b
     assert "### Strategic Takeaways" not in section_b
     assert "### Recommended Next Actions" not in section_b
+
+
+def test_find_heading_candidate_rejects_stage_and_subsection_labels() -> None:
+    assert _find_heading_candidate("Detected section heading: Stage C Final Markdown") is None
+    assert _find_heading_candidate("## Stage A Notes") is None
+    assert _find_heading_candidate("Detected section heading: 7.3 SS&C represents and warrants to Fund that") is None
+    assert _find_heading_candidate("Detected section heading: 2. Services and Fees") == "2. Services and Fees"
+    assert _find_heading_candidate("Detected section heading: Termination") == "Termination"
+
+
+def test_analyze_markdown_defaults_first_section_and_reuses_latest_valid_section(monkeypatch) -> None:
+    class _FakeAgent:
+        def __init__(self, name: str, outputs: list[str]) -> None:
+            self.name = name
+            self._outputs = outputs
+            self._index = 0
+
+        def run(self, markdown_chunk: str, assets_context: str = ""):
+            from pdf_multi_agent_analysis.agents import AgentResult
+
+            output = self._outputs[self._index]
+            self._index += 1
+            return AgentResult(self.name, output)
+
+    chunks = ["frontmatter chunk", "mid chunk with subsection text", "final chunk"]
+    monkeypatch.setattr(pipeline_module, "chunk_markdown", lambda *_args, **_kwargs: chunks)
+    monkeypatch.setattr(
+        pipeline_module,
+        "ExtractorAgent",
+        lambda: _FakeAgent(
+            "extractor",
+            [
+                "title: Test\nsource: test.md",
+                "Detected section heading: 7.3 SS&C represents and warrants to Fund that",
+                "Detected section heading: Stage A Notes",
+            ],
+        ),
+    )
+    monkeypatch.setattr(pipeline_module, "ReviewerAgent", lambda: _FakeAgent("reviewer", ["ok", "ok", "ok"]))
+    monkeypatch.setattr(pipeline_module, "AnalystAgent", lambda: _FakeAgent("analyst", ["ok", "ok", "ok"]))
+    monkeypatch.setattr(
+        pipeline_module,
+        "LegalRiskAgent",
+        lambda: _FakeAgent(
+            "legal-risk",
+            [
+                "Potential obligations/risks:\n- Confidentiality obligations apply.",
+                "Potential obligations/risks:\n- Stage C Final Markdown",
+                "Potential obligations/risks:\n- Liability obligations apply.",
+            ],
+        ),
+    )
+    monkeypatch.setattr(
+        pipeline_module,
+        "SynthesizerAgent",
+        lambda: _FakeAgent(
+            "synthesizer",
+            [
+                "Strategic takeaways:\n- Clarify definitions.\n\nRecommended next actions:\n- Tighten scope.",
+                "Strategic takeaways:\n- Stage B Executive Refinement\n\nRecommended next actions:\n- Preserve parent section.",
+                "Strategic takeaways:\n- Confirm liability scope.\n\nRecommended next actions:\n- Track negotiation points.",
+            ],
+        ),
+    )
+
+    cfg = PipelineConfig(chunk_size_chars=50, overlap_chars=0)
+    analysis = _analyze_markdown("ignored", "contract.md", cfg)
+    report = analysis["report"]
+
+    assert "## Definitions and Interpretation" in report
+    assert "## 7.3 SS&C represents and warrants to Fund that" not in report
+    assert "Stage C Final Markdown" not in report
+    assert "Stage B Executive Refinement" not in report
+    assert analysis["section_count"] == 1
