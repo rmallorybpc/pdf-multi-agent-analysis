@@ -52,11 +52,7 @@
 - Fund shall arrange with each such Person to deliver such information and materials on a timely basis, and SS&C will not be required to enter any agreements with that Person in order for SS&C to provide the Services.
 - Notwithstanding anything in this Agreement to the contrary, $S&C Associates (i) shall be entitled, without further enquiry, for all purposes in relation to dealings with all Persons, to rely on the authenticity, completeness and accuracy of any and all information and communications of whatever nature received by SS&C Associates in good faith, in connection with the performance of the Services and its duties and obligations hereunder, and (ii) shall not be responsible or liable to any Person for Losses arising by virtue of any such information or communication not being authentic, complete and/or accurate.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 4 Term
 
@@ -67,11 +63,7 @@
 - Termination 5.1.
 - A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur:
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 5 Termination 5.1. A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur:
 
@@ -86,11 +78,7 @@
 - If Fund elects to terminate this Agreement prior to the end of the Term, Fund agrees to pay an amount equal to the average monthly fee paid by Fund to SS&C under the Agreement multiplied by the number of months remaining in the Term.
 - To the extent any re performed by SS&C for Fund after the termination of this Agreement, all of the provisions of this Agreement except portions that are inapplicable to such continuing services shall survive the termination of this Agreement for so long as those services are performed.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 6 Limitation of Liability and Indemnification
 
@@ -109,11 +97,7 @@
 - Notwithstanding the foregoing, Fund shall indemnify, defend, and hold harmless SS&C and its Affiliates from and against Losses (including reasonable legal fees and costs to enforce this provision) that SS&C or its Affiliates suffer, incur, or pay as a result of any Third Party Claim that the Fund Materials infringe, or cause the infringement of, the Intellectual Property Rights of a third party, except to extent such infringement is a result of or arises out of modifications to or improper use of the Fund Materials made by SS&C or its Affiliates not previously authorized by Fund, if such claim would have been avoided without such modification or use.
 - (c) It has all necessary legal power and authority to enter into this Agreement, the execution of which has been duly authorized and will not violate the terms of any other agreement.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 7.3 SS&C represents and warrants to Fund that:
 
@@ -121,11 +105,7 @@
 - (ii) it is a limited liability company duly organized and existing and in good standing under the laws of the state of Delaware and has filed for registration with the Securities and Exchange Commission (the “SEC”) as a closed-end management investment company;
 - (a) It has and shall maintain during the term of this Agreement a business continuity policy, which is available to Fund for review and shall test the relevant aspects of such policy not less than annually.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 9 Data Protection
 
@@ -141,11 +121,7 @@
 - son not authorized by SS&C to receive the same including as described in this Agreement, any information concerning the SS&C Property and shall use reasonable efforts to prevent any such disclosure.
 - Fund acknowledges and agrees that SS&C makes no representation or warranty that the Website design and other Services provided by or on behalf of SS&C in connection with this Agreement to the extent based on Fund IP and Fund Materials, including but not limited to, any branding, logos or other images provided or created by SS&C based on Fund IP and Fund Materials (“Created Materials”), will not infringe or violate any third-party’s Intellectual Property Rights or applicable law.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 11.2 Each Party may disclose the other Party’s Confidential Information:
 
@@ -163,11 +139,7 @@
 - If the Services stribution by SS&C of notices or statements to investors, SS&C may, upon advance notice to Fund, include reasonable notices describing those terms of this Agreement relating to SS&C and its liability and the limitations thereon;
 - Fund shall not, in any communications with any Person, whether oral or written, make any representations stating or implying that SS&C is providing valuations with respect to Fund’s securities, products or services, or verifying any valuations;
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 12 Notices
 
@@ -175,11 +147,7 @@
 - Except as otherwise provided herein, all notices required or permitted under this Agreement or required by Law shall be effective only if in writing and delivered: (i) personally, (ii) by registered mail, postage prepaid, return receipt requested, (iii) by receipted prepaid courier, (iv) by any confirmed facsimile or (v) by any electronic mail, to the relevant address or number listed below (or to such other address or number as a Party shall hereafter provide by notice to the other Parties).
 - Notices shall be deemed effective when received by the Party to whom notice is required to be given.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 13 Miscellancous 13.1. Amendment; Modification. This Agreement may not be amended or modified except in writing signed by an authorized
 
@@ -227,11 +195,7 @@
 - (xiii) "T2000 System" shall mean SS&C GIDS’s TA2000™ computerized data processing system for shareholder
 - Any references to Law shall be construed to the Law as amended to the date of the effectiveness of the applicable provision referencing the Law.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 1 Fund Accounting
 
@@ -324,30 +288,16 @@
 - (v) Notwithstanding anything in this Agreement to the contrary, as it relates to the provision of the Modern Data Services, no SS&C ALPS Associate nor Data Supplier shall be liable for (i) any special, indirect or consequential damages (even if advised of the possibility of such), (ii) any delay by reason of circumstances beyond its control, including acts of civil or military authority, national emergencies, labor difficulties, fire, mechanical breakdown,
 - for all purposes of this Agreement SS&C shall be entitled to assume that any user of such credentials is an authorized representative of Fund.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## 5 Maintain books and records with respect to the Services.
 
 ### Legal Risk Findings
 - for all purposes of this Agreement SS&C shall be entitled to assume that any user of such credentials is an authorized representative of Fund.
 
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
 
-### Recommended Next Actions
-- No additional next actions for this section.
 
 ## Stage A Notes
 
 ### Legal Risk Findings
 - Any such substitute Schedule B shall become effective twenty-four (24) hours after SS&C GIDS's receipt of the document and shall be incorporated into the Agreement.
-
-### Strategic Takeaways
-- No additional strategic takeaways for this section.
-
-### Recommended Next Actions
-- No additional next actions for this section.

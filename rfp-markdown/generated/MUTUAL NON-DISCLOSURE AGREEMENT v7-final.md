@@ -1,13 +1,13 @@
 ---
 title: "MUTUAL NON-DISCLOSURE AGREEMENT v7-final.md"
 source: "MUTUAL NON-DISCLOSURE AGREEMENT v7-final.md"
-last_run: "2026-04-08T18:56:18Z"
+last_run: "2026-04-08T19:12:23Z"
 ---
 
 # Final Synthesized Output: MUTUAL NON-DISCLOSURE AGREEMENT v7-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-08T18:56:04Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v7" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v7.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-08T19:12:12Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v7" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v7.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Section heading candidate: Stage C Final Markdown
 
