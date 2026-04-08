@@ -10,8 +10,86 @@ import zipfile
 
 TEXT_EXTENSIONS = {".md", ".txt", ".json", ".yaml", ".yml"}
 
+ASSET_STATUS_LOADED = "loaded"
+ASSET_STATUS_PARTIAL = "partial"
+ASSET_STATUS_FAILED = "failed"
+
 PDF_MIN_TEXT_CHARS_DEFAULT = 100
 PDF_MAX_SINGLE_CHAR_TOKEN_RATIO_DEFAULT = 0.40
+
+COMMON_WORD_SPLIT_TERMS = {
+    "a",
+    "about",
+    "all",
+    "an",
+    "and",
+    "any",
+    "are",
+    "as",
+    "at",
+    "be",
+    "before",
+    "between",
+    "business",
+    "by",
+    "can",
+    "company",
+    "confidential",
+    "content",
+    "contract",
+    "controls",
+    "data",
+    "description",
+    "document",
+    "effective",
+    "examination",
+    "for",
+    "from",
+    "has",
+    "have",
+    "in",
+    "independent",
+    "information",
+    "internal",
+    "is",
+    "it",
+    "its",
+    "legal",
+    "may",
+    "must",
+    "not",
+    "of",
+    "on",
+    "or",
+    "our",
+    "out",
+    "presents",
+    "privacy",
+    "process",
+    "report",
+    "requirements",
+    "review",
+    "risk",
+    "security",
+    "service",
+    "shall",
+    "should",
+    "soc",
+    "standards",
+    "suitable",
+    "that",
+    "the",
+    "their",
+    "there",
+    "these",
+    "this",
+    "to",
+    "use",
+    "was",
+    "we",
+    "with",
+    "xyz",
+}
 
 
 def _collapse_character_spaced_words(text: str) -> str:
@@ -75,6 +153,63 @@ def _normalize_column_line_breaks(text: str) -> str:
     return "\n\n".join(normalized)
 
 
+def _split_run_together_token(token: str) -> str:
+    lowered = token.lower()
+    if len(lowered) < 20 or not lowered.isalpha():
+        return token
+
+    n = len(lowered)
+    dp: list[tuple[int, int, int, list[str]] | None] = [None] * (n + 1)
+    dp[0] = (0, 0, 0, [])
+
+    for i in range(n):
+        state = dp[i]
+        if state is None:
+            continue
+        score, known_chars, known_parts, parts = state
+        for j in range(i + 2, min(n, i + 18) + 1):
+            piece = lowered[i:j]
+            if piece in COMMON_WORD_SPLIT_TERMS:
+                piece_score = max(2, len(piece))
+                next_state = (
+                    score + piece_score,
+                    known_chars + len(piece),
+                    known_parts + 1,
+                    parts + [piece],
+                )
+            elif len(piece) >= 8:
+                next_state = (score - 1, known_chars, known_parts, parts + [piece])
+            else:
+                continue
+
+            current = dp[j]
+            if current is None or next_state[:3] > current[:3]:
+                dp[j] = next_state
+
+    best = dp[n]
+    if best is None:
+        return token
+
+    _, known_chars, known_parts, parts = best
+    if len(parts) < 2:
+        return token
+    if known_parts < 2:
+        return token
+
+    known_ratio = known_chars / n
+    if known_ratio < 0.55:
+        return token
+
+    rebuilt = " ".join(parts)
+    if token[:1].isupper():
+        rebuilt = rebuilt[:1].upper() + rebuilt[1:]
+    return rebuilt
+
+
+def _reconstruct_run_together_words(text: str) -> str:
+    return re.sub(r"\b[A-Za-z]{20,}\b", lambda m: _split_run_together_token(m.group(0)), text)
+
+
 def _read_text_file(path: Path, max_chars: int) -> str:
     return path.read_text(encoding="utf-8", errors="ignore")[:max_chars].strip()
 
@@ -83,6 +218,14 @@ def _normalize_extracted_text(text: str) -> str:
     text = text.replace("\x00", "")
     text = text.replace("\r\n", "\n").replace("\r", "\n")
     text = _collapse_character_spaced_words(text)
+    text = _reconstruct_run_together_words(text)
+
+    # Normalize punctuation spacing from OCR artifacts like "Company ' s".
+    text = re.sub(r"([A-Za-z])\s+'\s+([A-Za-z])", r"\1'\2", text)
+    text = re.sub(r"\s+([,.;:!?])", r"\1", text)
+    text = re.sub(r"([,.;:!?])([A-Za-z(\"'])", r"\1 \2", text)
+    text = re.sub(r"\(\s+", "(", text)
+    text = re.sub(r"\s+\)", ")", text)
 
     # Join soft line-wrap hyphenation before broader line-break normalization.
     text = re.sub(r"(?<=\w)-\n(?=\w)", "", text)
@@ -127,6 +270,21 @@ def _asset_text_quality_failure(
 
 def _pdf_extraction_failure_message(path: Path, reason: str) -> str:
     return f"Asset extraction failed for {path.as_posix()}: {reason}"
+
+
+def _business_status_line(path: Path, status: str) -> str:
+    name = path.as_posix()
+    if status == ASSET_STATUS_FAILED:
+        return (
+            f"Note: {name} could not be read automatically. Findings in this analysis do not reflect its contents. "
+            "Manual review of this document is recommended before finalizing any redline strategy."
+        )
+    if status == ASSET_STATUS_PARTIAL:
+        return (
+            f"Note: {name} was partially parsed. Some content may be incomplete. "
+            "Treat references to this document in the analysis with caution."
+        )
+    return f"{name} - loaded successfully."
 
 
 def _extract_pdf_text_native(path: Path, max_chars: int) -> str:
@@ -215,7 +373,7 @@ def _read_pdf_file(
     ocr_max_pages: int,
     min_text_chars: int,
     max_single_char_token_ratio: float,
-) -> tuple[str, str | None]:
+) -> tuple[str, str | None, str]:
     native = _extract_pdf_text_native(path, max_chars)
     native_quality_failure = _asset_text_quality_failure(
         native,
@@ -223,7 +381,7 @@ def _read_pdf_file(
         max_single_char_token_ratio=max_single_char_token_ratio,
     )
     if native and native_quality_failure is None:
-        return native, None
+        return native, None, ASSET_STATUS_LOADED
 
     if ocr_fallback:
         ocr = _extract_pdf_text_ocr(path, max_chars, ocr_max_pages)
@@ -233,10 +391,10 @@ def _read_pdf_file(
             max_single_char_token_ratio=max_single_char_token_ratio,
         )
         if ocr and ocr_quality_failure is None:
-            return ocr, None
+            return ocr, None, ASSET_STATUS_PARTIAL
 
         if not native and not ocr:
-            return "", "no extractable text found with native extraction or OCR fallback"
+            return "", "no extractable text found with native extraction or OCR fallback", ASSET_STATUS_FAILED
 
         reasons: list[str] = []
         if native_quality_failure is not None:
@@ -244,12 +402,12 @@ def _read_pdf_file(
         if ocr_quality_failure is not None:
             reasons.append(f"OCR fallback failed quality checks: {ocr_quality_failure}")
         reason_text = "; ".join(reasons) if reasons else "extraction failed quality checks"
-        return "", reason_text
+        return "", reason_text, ASSET_STATUS_FAILED
 
     if not native:
-        return "", "no extractable text found with native extraction"
+        return "", "no extractable text found with native extraction", ASSET_STATUS_FAILED
 
-    return "", f"native extraction failed quality checks: {native_quality_failure}"
+    return "", f"native extraction failed quality checks: {native_quality_failure}", ASSET_STATUS_FAILED
 
 
 def _read_docx_file(path: Path, max_chars: int) -> str:
@@ -285,29 +443,32 @@ def build_assets_context(
     return context
 
 
-def build_assets_context_with_warnings(
+def build_assets_context_with_status(
     assets_dir: Path,
     max_chars_per_file: int = 4000,
     pdf_ocr_fallback: bool = False,
     pdf_ocr_max_pages: int = 6,
     pdf_min_text_chars: int = PDF_MIN_TEXT_CHARS_DEFAULT,
     pdf_max_single_char_token_ratio: float = PDF_MAX_SINGLE_CHAR_TOKEN_RATIO_DEFAULT,
-) -> tuple[str, list[str]]:
-    """Build a deterministic markdown context block from reference assets."""
+) -> tuple[str, list[dict[str, str]]]:
+    """Build markdown context and business-facing status entries for reference assets."""
     if not assets_dir.exists() or not assets_dir.is_dir():
         return "", []
 
     sections: list[str] = ["# Assets Context", ""]
-    warnings: list[str] = []
+    statuses: list[dict[str, str]] = []
 
     for path in sorted(p for p in assets_dir.rglob("*") if p.is_file()):
         rel = path.relative_to(assets_dir)
         suffix = path.suffix.lower()
 
+        status = ASSET_STATUS_LOADED
+        technical_reason: str | None = None
+
         if suffix in TEXT_EXTENSIONS:
-            content = _read_text_file(path, max_chars_per_file)
+            content = _normalize_extracted_text(_read_text_file(path, max_chars_per_file))
         elif suffix == ".pdf":
-            content, extraction_warning = _read_pdf_file(
+            content, extraction_warning, status = _read_pdf_file(
                 path,
                 max_chars_per_file,
                 ocr_fallback=pdf_ocr_fallback,
@@ -316,13 +477,26 @@ def build_assets_context_with_warnings(
                 max_single_char_token_ratio=pdf_max_single_char_token_ratio,
             )
             if extraction_warning is not None:
-                warnings.append(_pdf_extraction_failure_message(rel, extraction_warning))
+                technical_reason = extraction_warning
         elif suffix == ".docx":
-            content = _read_docx_file(path, max_chars_per_file)
+            content = _normalize_extracted_text(_read_docx_file(path, max_chars_per_file))
+            if content.startswith("[docx reference present;"):
+                status = ASSET_STATUS_PARTIAL
         else:
-            content = "[unsupported/binary reference file type]"
+            content = ""
+            status = ASSET_STATUS_PARTIAL
 
-        if not content:
+        business_note = _business_status_line(rel, status)
+        status_entry: dict[str, str] = {
+            "name": rel.as_posix(),
+            "status": status,
+            "message": business_note,
+        }
+        if technical_reason:
+            status_entry["warning"] = _pdf_extraction_failure_message(rel, technical_reason)
+        statuses.append(status_entry)
+
+        if status == ASSET_STATUS_FAILED or not content:
             continue
 
         sections.append(f"## {rel.as_posix()}")
@@ -330,9 +504,30 @@ def build_assets_context_with_warnings(
         sections.append("")
 
     if len(sections) <= 2:
-        return "", warnings
+        return "", statuses
 
-    return "\n".join(sections).strip() + "\n", warnings
+    return "\n".join(sections).strip() + "\n", statuses
+
+
+def build_assets_context_with_warnings(
+    assets_dir: Path,
+    max_chars_per_file: int = 4000,
+    pdf_ocr_fallback: bool = False,
+    pdf_ocr_max_pages: int = 6,
+    pdf_min_text_chars: int = PDF_MIN_TEXT_CHARS_DEFAULT,
+    pdf_max_single_char_token_ratio: float = PDF_MAX_SINGLE_CHAR_TOKEN_RATIO_DEFAULT,
+) -> tuple[str, list[str]]:
+    """Compatibility wrapper returning legacy warning strings for failed assets only."""
+    context, statuses = build_assets_context_with_status(
+        assets_dir,
+        max_chars_per_file=max_chars_per_file,
+        pdf_ocr_fallback=pdf_ocr_fallback,
+        pdf_ocr_max_pages=pdf_ocr_max_pages,
+        pdf_min_text_chars=pdf_min_text_chars,
+        pdf_max_single_char_token_ratio=pdf_max_single_char_token_ratio,
+    )
+    warnings = [entry["warning"] for entry in statuses if "warning" in entry]
+    return context, warnings
 
 
 def write_assets_cache(
@@ -360,9 +555,9 @@ def write_assets_cache(
         extraction_warning_message: str | None = None
 
         if suffix in TEXT_EXTENSIONS:
-            content = _read_text_file(path, max_chars_per_file)
+            content = _normalize_extracted_text(_read_text_file(path, max_chars_per_file))
         elif suffix == ".pdf":
-            content, extraction_warning = _read_pdf_file(
+            content, extraction_warning, _status = _read_pdf_file(
                 path,
                 max_chars_per_file,
                 ocr_fallback=pdf_ocr_fallback,
@@ -374,9 +569,9 @@ def write_assets_cache(
                 extraction_warning_message = _pdf_extraction_failure_message(rel, extraction_warning)
                 warnings.append(extraction_warning_message)
         elif suffix == ".docx":
-            content = _read_docx_file(path, max_chars_per_file)
+            content = _normalize_extracted_text(_read_docx_file(path, max_chars_per_file))
         else:
-            content = "[unsupported/binary reference file type]"
+            content = ""
 
         lines = [f"# source: assets/{rel.as_posix()}", ""]
         if content:

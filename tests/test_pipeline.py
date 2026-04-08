@@ -43,9 +43,11 @@ def test_run_markdown_analysis_with_assets(tmp_path: Path) -> None:
     assert "last_run:" in final
     assert "# Final Synthesized Output:" in final
     assert "## Document Overview" in report
-    assert "Reference assets loaded: notes.txt. Redline strategy can be anchored to internal standards." in report
-    assert "## Reference Assets" not in report
-    assert "notes.txt" in report
+    assert "## Reference Assets" in report
+    assert "### notes.txt" in report
+    assert "Confidential information obligations and disclosure exceptions." in report
+    assert "## Reference Document Status" in report
+    assert "notes.txt - loaded successfully." in report
     assert "Summary preview:" not in report
     assert "Reference anchors:" not in report
     diagnostics = diagnostics_path.read_text(encoding="utf-8")
@@ -73,6 +75,7 @@ def test_run_markdown_analysis_without_assets(tmp_path: Path) -> None:
     executive_summary = executive_summary_path.read_text(encoding="utf-8")
     final = final_path.read_text(encoding="utf-8")
     assert "## Reference Assets" not in report
+    assert "## Reference Document Status" not in report
     assert "## Document Overview" in report
     assert "# Contract Issues Summary" in issues
     assert "NOT FOUND" in scorecard
@@ -118,7 +121,7 @@ def test_sectioned_report_dedupes_takeaways_and_actions() -> None:
         section_order=section_order,
         section_buckets=section_buckets,
         assets_context="",
-        asset_warnings=[],
+        asset_statuses=[],
     )
 
     assert report.count("- Cap liability for indirect damages.") == 1
@@ -127,6 +130,31 @@ def test_sectioned_report_dedupes_takeaways_and_actions() -> None:
     assert "- Confidentiality duties appear linked to use limitations." in report
     assert "- Confidentiality obligations are present but scope and carve-outs should be tightened." in report
     assert "- Negotiate a materiality qualifier for breach triggers." in report
+
+
+def test_reference_document_status_is_last_section() -> None:
+    report = _build_sectioned_analysis_report(
+        report_title="Sample",
+        chunk_count=1,
+        section_order=["Section A"],
+        section_buckets={
+            "Section A": {
+                "legal_risks": ["Broad confidentiality scope."],
+                "takeaways": ["Clarify use limitations."],
+                "actions": ["Request explicit residuals language."],
+            }
+        },
+        assets_context="# Assets Context\n\n## reference.txt\nAsset prose.\n",
+        asset_statuses=[
+            {
+                "name": "reference.txt",
+                "status": "loaded",
+                "message": "reference.txt - loaded successfully.",
+            }
+        ],
+    )
+
+    assert report.rstrip().endswith("- reference.txt - loaded successfully.")
 
 
 def test_sectioned_report_omits_empty_strategic_subsections() -> None:
@@ -150,7 +178,7 @@ def test_sectioned_report_omits_empty_strategic_subsections() -> None:
         section_order=section_order,
         section_buckets=section_buckets,
         assets_context="",
-        asset_warnings=[],
+        asset_statuses=[],
     )
 
     section_b = report.split("## Section B", maxsplit=1)[1]

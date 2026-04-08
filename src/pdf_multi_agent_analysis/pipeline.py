@@ -5,7 +5,7 @@ import re
 from difflib import SequenceMatcher
 
 from .agents import AnalystAgent, ExtractorAgent, LegalRiskAgent, ReviewerAgent, SynthesizerAgent
-from .assets_context import build_assets_context_with_warnings
+from .assets_context import build_assets_context_with_status
 from .chunking import chunk_markdown
 from .config import PipelineConfig
 from .converter import pdf_to_markdown
@@ -130,19 +130,67 @@ def _append_unique_bullet(
     return True
 
 
-def _extract_asset_filenames(assets_context: str) -> list[str]:
-    names = re.findall(r"^##\s+(.+)$", assets_context, flags=re.MULTILINE)
-    return [name.strip() for name in names if name.strip()]
+def _parse_assets_context_sections(assets_context: str) -> dict[str, str]:
+    sections: dict[str, list[str]] = {}
+    current_name: str | None = None
 
-
-def _extract_failed_asset_names(asset_warnings: list[str]) -> list[str]:
-    names: list[str] = []
-    for warning in asset_warnings:
-        match = re.search(r"Asset extraction failed for\s+([^:]+):", warning)
-        if not match:
+    for line in assets_context.splitlines():
+        header = re.match(r"^##\s+(.+)$", line.strip())
+        if header:
+            current_name = header.group(1).strip()
+            sections[current_name] = []
             continue
-        names.append(match.group(1).strip())
-    return names
+        if current_name is None:
+            continue
+        sections[current_name].append(line)
+
+    return {name: "\n".join(lines).strip() for name, lines in sections.items()}
+
+
+def _append_reference_assets_section(
+    lines: list[str],
+    assets_context: str,
+    asset_statuses: list[dict[str, str]],
+) -> None:
+    if not asset_statuses:
+        return
+
+    content_by_asset = _parse_assets_context_sections(assets_context)
+    lines.append("## Reference Assets")
+    lines.append("")
+
+    for entry in asset_statuses:
+        name = entry.get("name", "")
+        status = entry.get("status", "")
+        message = entry.get("message", "")
+        if not name:
+            continue
+
+        lines.append(f"### {name}")
+        if status == "failed":
+            lines.append(f"- {message}")
+            lines.append("")
+            continue
+
+        content = content_by_asset.get(name, "")
+        if content:
+            lines.append(content)
+        elif message:
+            lines.append(f"- {message}")
+        lines.append("")
+
+
+def _append_reference_document_status_section(lines: list[str], asset_statuses: list[dict[str, str]]) -> None:
+    if not asset_statuses:
+        return
+
+    lines.append("## Reference Document Status")
+    lines.append("")
+    for entry in asset_statuses:
+        message = entry.get("message", "")
+        if message:
+            lines.append(f"- {message}")
+    lines.append("")
 
 
 def _extract_synth_list(synth_content: str, heading: str) -> list[str]:
@@ -282,22 +330,11 @@ def _build_sectioned_analysis_report(
     section_order: list[str],
     section_buckets: dict[str, dict[str, list[str]]],
     assets_context: str,
-    asset_warnings: list[str],
+    asset_statuses: list[dict[str, str]],
 ) -> str:
     lines = [f"# Analysis Report: {report_title}", ""]
     lines.append("## Document Overview")
     lines.append(f"- Chunks processed: {chunk_count}. Sections detected: {len(section_order)}.")
-
-    asset_filenames = _extract_asset_filenames(assets_context)
-    if asset_filenames:
-        joined = ", ".join(asset_filenames)
-        lines.append(f"- Reference assets loaded: {joined}. Redline strategy can be anchored to internal standards.")
-
-    failed_asset_names = _extract_failed_asset_names(asset_warnings)
-    for name in failed_asset_names:
-        lines.append(
-            f"- Note: {name} could not be parsed and was excluded from this analysis. Manual review of that document is recommended."
-        )
     lines.append("")
 
     seen_takeaways_global: set[str] = set()
@@ -380,6 +417,9 @@ def _build_sectioned_analysis_report(
                 lines.append(f"- {action}")
 
         lines.append("")
+
+    _append_reference_assets_section(lines, assets_context, asset_statuses)
+    _append_reference_document_status_section(lines, asset_statuses)
 
     return "\n".join(lines).strip() + "\n"
 
@@ -666,13 +706,13 @@ def _analyze_markdown(
     report_title: str,
     config: PipelineConfig,
     assets_context: str = "",
-    asset_warnings: list[str] | None = None,
+    asset_statuses: list[dict[str, str]] | None = None,
 ) -> dict:
     chunks = chunk_markdown(markdown, config.chunk_size_chars, config.overlap_chars)
     agents = [ExtractorAgent(), ReviewerAgent(), AnalystAgent(), LegalRiskAgent(), SynthesizerAgent()]
 
     issues_lines = [f"# Contract Issues Summary: {report_title}", ""]
-    warnings = asset_warnings or []
+    statuses = asset_statuses or []
     section_buckets: dict[str, dict[str, list[str]]] = {}
     section_order: list[str] = []
     chunk_diagnostics: list[dict[str, str]] = []
@@ -747,7 +787,7 @@ def _analyze_markdown(
         section_order=section_order,
         section_buckets=section_buckets,
         assets_context=assets_context,
-        asset_warnings=warnings,
+        asset_statuses=statuses,
     )
     issues_report = "\n".join(issues_lines).strip() + "\n"
     scorecard, overall_rating, _not_found_categories, score_rows = _build_scorecard(report, issues_report)
@@ -821,9 +861,9 @@ def run_markdown_analysis(
 
     markdown = markdown_path.read_text(encoding="utf-8")
     assets_context = ""
-    asset_warnings: list[str] = []
+    asset_statuses: list[dict[str, str]] = []
     if assets_dir is not None:
-        assets_context, asset_warnings = build_assets_context_with_warnings(
+        assets_context, asset_statuses = build_assets_context_with_status(
             assets_dir,
             max_chars_per_file=cfg.max_asset_chars_per_file,
             pdf_ocr_fallback=cfg.asset_pdf_ocr_fallback,
@@ -837,7 +877,7 @@ def run_markdown_analysis(
         markdown_path.name,
         cfg,
         assets_context=assets_context,
-        asset_warnings=asset_warnings,
+        asset_statuses=asset_statuses,
     )
     report_path = cfg.output_dir / f"{markdown_path.stem}.analysis.md"
     issues_path = cfg.output_dir / f"{markdown_path.stem}.issues.md"
@@ -866,5 +906,6 @@ def run_markdown_analysis(
         "section_count": analysis["section_count"],
         "chunk_count": analysis["chunk_count"],
         "assets_context_included": bool(assets_context.strip()),
-        "asset_warnings": asset_warnings,
+        "asset_warnings": [entry["warning"] for entry in asset_statuses if "warning" in entry],
+        "asset_statuses": asset_statuses,
     }

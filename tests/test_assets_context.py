@@ -2,10 +2,14 @@ from pathlib import Path
 
 from pdf_multi_agent_analysis import assets_context
 from pdf_multi_agent_analysis.assets_context import (
+    ASSET_STATUS_FAILED,
+    ASSET_STATUS_LOADED,
+    ASSET_STATUS_PARTIAL,
     PDF_MAX_SINGLE_CHAR_TOKEN_RATIO_DEFAULT,
     PDF_MIN_TEXT_CHARS_DEFAULT,
     _asset_text_quality_failure,
     _normalize_extracted_text,
+    build_assets_context_with_status,
     build_assets_context_with_warnings,
     write_assets_cache,
 )
@@ -19,6 +23,14 @@ def test_ocr_cleanup_collapses_character_spacing_and_layout_breaks() -> None:
 
     assert "the agreement shall be applied effectively" in cleaned
     assert "e f f e c t i v e l y" not in cleaned
+
+
+def test_ocr_cleanup_reconstructs_run_together_words() -> None:
+    raw = "ThisreportpresentsanindependentexaminationofXYZCompanysdescriptionofthecontrols."
+    cleaned = _normalize_extracted_text(raw)
+
+    assert "this report presents an independent examination of xyz company" in cleaned.lower()
+    assert "description of the controls" in cleaned.lower()
 
 
 def test_ocr_cleanup_joins_single_word_line_artifacts() -> None:
@@ -45,7 +57,7 @@ def test_failed_pdf_extraction_returns_warning_and_no_context(tmp_path: Path, mo
     (assets_dir / "reference.pdf").write_bytes(b"%PDF-1.4\n")
 
     def fake_read_pdf_file(*_args, **_kwargs):
-        return "", "no extractable text found with native extraction or OCR fallback"
+        return "", "no extractable text found with native extraction or OCR fallback", ASSET_STATUS_FAILED
 
     monkeypatch.setattr(assets_context, "_read_pdf_file", fake_read_pdf_file)
 
@@ -54,6 +66,35 @@ def test_failed_pdf_extraction_returns_warning_and_no_context(tmp_path: Path, mo
     assert context == ""
     assert len(warnings) == 1
     assert "Asset extraction failed for reference.pdf" in warnings[0]
+
+
+def test_assets_status_messages_are_business_facing(tmp_path: Path, monkeypatch) -> None:
+    assets_dir = tmp_path / "assets"
+    assets_dir.mkdir()
+    (assets_dir / "clean.txt").write_text("controls are effective", encoding="utf-8")
+    (assets_dir / "partial.pdf").write_bytes(b"%PDF-1.4\n")
+    (assets_dir / "failed.pdf").write_bytes(b"%PDF-1.4\n")
+
+    def fake_read_pdf_file(path: Path, *_args, **_kwargs):
+        if path.name == "partial.pdf":
+            return "Recovered via OCR", None, ASSET_STATUS_PARTIAL
+        return "", "no extractable text found with native extraction or OCR fallback", ASSET_STATUS_FAILED
+
+    monkeypatch.setattr(assets_context, "_read_pdf_file", fake_read_pdf_file)
+
+    context, statuses = build_assets_context_with_status(assets_dir)
+
+    assert "## clean.txt" in context
+    assert "## partial.pdf" in context
+    assert "failed.pdf" not in context
+
+    by_name = {entry["name"]: entry for entry in statuses}
+    assert by_name["clean.txt"]["status"] == ASSET_STATUS_LOADED
+    assert by_name["clean.txt"]["message"] == "clean.txt - loaded successfully."
+    assert by_name["partial.pdf"]["status"] == ASSET_STATUS_PARTIAL
+    assert "was partially parsed" in by_name["partial.pdf"]["message"]
+    assert by_name["failed.pdf"]["status"] == ASSET_STATUS_FAILED
+    assert "could not be read automatically" in by_name["failed.pdf"]["message"]
 
 
 def test_run_markdown_analysis_writes_asset_warning_section(tmp_path: Path, monkeypatch) -> None:
@@ -65,7 +106,7 @@ def test_run_markdown_analysis_writes_asset_warning_section(tmp_path: Path, monk
     (assets_dir / "reference.pdf").write_bytes(b"%PDF-1.4\n")
 
     def fake_read_pdf_file(*_args, **_kwargs):
-        return "", "native extraction failed quality checks: text too short (12 chars < 100)"
+        return "", "native extraction failed quality checks: text too short (12 chars < 100)", ASSET_STATUS_FAILED
 
     monkeypatch.setattr(assets_context, "_read_pdf_file", fake_read_pdf_file)
 
@@ -76,7 +117,8 @@ def test_run_markdown_analysis_writes_asset_warning_section(tmp_path: Path, monk
     assert len(result["asset_warnings"]) == 1
     assert "reference.pdf" in result["asset_warnings"][0]
     assert "## Document Overview" in report
-    assert "Note: reference.pdf could not be parsed and was excluded from this analysis." in report
+    assert "## Reference Document Status" in report
+    assert "Note: reference.pdf could not be read automatically." in report
 
 
 def test_shared_cache_writer_uses_pdf_quality_failure_warning(tmp_path: Path, monkeypatch) -> None:
@@ -85,7 +127,7 @@ def test_shared_cache_writer_uses_pdf_quality_failure_warning(tmp_path: Path, mo
     (assets_dir / "reference.pdf").write_bytes(b"%PDF-1.4\n")
 
     def fake_read_pdf_file(*_args, **_kwargs):
-        return "", "no extractable text found with native extraction or OCR fallback"
+        return "", "no extractable text found with native extraction or OCR fallback", ASSET_STATUS_FAILED
 
     monkeypatch.setattr(assets_context, "_read_pdf_file", fake_read_pdf_file)
 
