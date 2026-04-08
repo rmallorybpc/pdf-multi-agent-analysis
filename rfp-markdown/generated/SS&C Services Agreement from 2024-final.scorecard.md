@@ -2,7 +2,7 @@ Overall contract risk rating: HIGH
 
 | Category | Risk Rating | Confidence | Rationale |
 | --- | --- | --- | --- |
-| Confidentiality obligations | HIGH | HIGH | Detected clause language indicates high exposure; sample: - Reference assets loaded: SOC-2-Type-2-Report-Example.pdf, assets-file, mnda-sample-template.2025.pdf, mutual_nondisclosure_template.docx. |
+| Confidentiality obligations | HIGH | HIGH | Detected clause language indicates high exposure; sample: - (f) “Confidential Information” means any information about any Party, including this Agreement, except for information that (i) is or becomes part of the publ... |
 | Liability and indemnification | HIGH | HIGH | Detected clause language indicates high exposure; sample: - Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope. |
 | Termination rights | HIGH | HIGH | Detected clause language indicates high exposure; sample: ### Strategic Takeaways - Term and survival language can shift long-tail exposure; |
 | Intellectual property | HIGH | HIGH | Detected clause language indicates high exposure; sample: - (hb) “Fund IP” shall mean all Intellectual Property Rights owned by Fund and/or Management. |

@@ -1,13 +1,13 @@
 ---
 title: "SS&C Services Agreement from 2024-final.md"
 source: "SS&C Services Agreement from 2024-final.md"
-last_run: "2026-04-08T19:13:00Z"
+last_run: "2026-04-08T19:24:45Z"
 ---
 
 # Final Synthesized Output: SS&C Services Agreement from 2024-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-08T19:12:48Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "SS&C Services Agreement from 2024" - source_path: "rfp-pdfs/SS&C Services Agreement from 2024.pdf" - page_count: 40 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "SS&C Services Agreement...
+Summary preview: --- last_run: "2026-04-08T19:24:32Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "SS&C Services Agreement from 2024" - source_path: "rfp-pdfs/SS&C Services Agreement from 2024.pdf" - page_count: 40 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "SS&C Services Agreement...
 
 Section heading candidate: Stage C Final Markdown
 
@@ -641,7 +641,7 @@ Recommended next actions:
 - Validate survival period and termination mechanics against your retention and exit requirements.
 - Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
-Reference anchors: accordance, act, and, any, applicable, apply, are, data, file, following
+Reference anchors: accordance, act, and, any, applicable, apply, are, data, following, for
 
 ## Chunk 42
 Summary preview: ings (v) Monitor expense ratios (vi) Maintain budget vs. actual expenses (vii) Manage fund invoice approval and bill payment process (viii) Assist with placement of Fidelity Bond and E&O insurance https://www.sec.gov/Archives/edgar/data/1998043/000121465924010347/ex99_k.htm 19/40 4/8/26, 11:32 AM sec.gov/Archives/edgar/data/1998043/000121465924010347/ex99_k.htm 3.
@@ -945,7 +945,7 @@ Recommended next actions:
 - Prepare fallback drafting for remedies to control downside while preserving enforceability.
 - Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
-Reference anchors: and, any, applicable, are, authorized, data, evidence, file, for, form
+Reference anchors: and, any, applicable, are, authorized, data, evidence, for, form, from
 
 ## Chunk 65
 Summary preview: t that certificates of Fund shall be represented to have been lost, stolen, missing, counterfeited or recovered, SS&C GIDS shall file Form X-17F-1A as required by applicable federal securities laws.
@@ -957,7 +957,7 @@ Recommended next actions:
 - Classify this chunk as accept, clarify, or negotiate based on business criticality.
 - Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
-Reference anchors: accordance, and, any, applicable, are, authorized, controls, file, form, have
+Reference anchors: accordance, and, any, applicable, are, authorized, controls, form, have, hereunder
 
 ## Chunk 66
 Summary preview: ystem and facilities hereunder, unless Fund is given thirty (30) days’ prior notice to allow Fund to change its procedures and SS&C GIDS provides Fund with revised operating procedures and controls.
