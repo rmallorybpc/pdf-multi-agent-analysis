@@ -2,6 +2,7 @@ from pathlib import Path
 from datetime import datetime, timezone
 import os
 import re
+from difflib import SequenceMatcher
 
 from .agents import AnalystAgent, ExtractorAgent, LegalRiskAgent, ReviewerAgent, SynthesizerAgent
 from .assets_context import build_assets_context_with_warnings
@@ -65,6 +66,70 @@ def _normalize_bullet_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _canonicalize_bullet_text(text: str) -> str:
+    normalized = _normalize_bullet_text(text).lower()
+    # Strip punctuation for stable deduplication keys while preserving token order.
+    normalized = re.sub(r"[^a-z0-9\s]", "", normalized)
+    return re.sub(r"\s+", " ", normalized).strip()
+
+
+def _is_reference_assets_boilerplate(text: str) -> bool:
+    canonical = _canonicalize_bullet_text(text)
+    if not canonical:
+        return False
+
+    has_reference_assets = bool(re.search(r"\breference\s+assets?\b", canonical))
+    has_redline_strategy = bool(re.search(r"\bredline\w*\s+(strategy|approach|plan)\b", canonical))
+    has_internal_standards = bool(re.search(r"\binternal\s+(standard|standards|baseline|playbook|templates?)\b", canonical))
+    return has_reference_assets and has_redline_strategy and has_internal_standards
+
+
+def _are_near_duplicate_bullets(existing: str, candidate: str) -> bool:
+    existing_key = _canonicalize_bullet_text(existing)
+    candidate_key = _canonicalize_bullet_text(candidate)
+    if not existing_key or not candidate_key:
+        return False
+    if existing_key == candidate_key:
+        return True
+
+    existing_tokens = set(existing_key.split())
+    candidate_tokens = set(candidate_key.split())
+    if not existing_tokens or not candidate_tokens:
+        return False
+
+    intersection = existing_tokens & candidate_tokens
+    union = existing_tokens | candidate_tokens
+    token_jaccard = len(intersection) / len(union)
+    overlap_existing = len(intersection) / len(existing_tokens)
+    overlap_candidate = len(intersection) / len(candidate_tokens)
+    seq_ratio = SequenceMatcher(None, existing_key, candidate_key).ratio()
+
+    # Conservative near-duplicate rules to avoid collapsing distinct legal insights.
+    if seq_ratio >= 0.95 and token_jaccard >= 0.8:
+        return True
+    if min(len(existing_key), len(candidate_key)) >= 50 and (
+        existing_key in candidate_key or candidate_key in existing_key
+    ) and max(overlap_existing, overlap_candidate) >= 0.9:
+        return True
+    return False
+
+
+def _append_unique_bullet(
+    items: list[str],
+    seen_exact_keys: set[str],
+    candidate: str,
+) -> bool:
+    normalized = _normalize_bullet_text(candidate)
+    key = _canonicalize_bullet_text(normalized)
+    if not normalized or not key or key in seen_exact_keys:
+        return False
+    if any(_are_near_duplicate_bullets(existing, normalized) for existing in items):
+        return False
+    seen_exact_keys.add(key)
+    items.append(normalized)
+    return True
+
+
 def _extract_asset_filenames(assets_context: str) -> list[str]:
     names = re.findall(r"^##\s+(.+)$", assets_context, flags=re.MULTILINE)
     return [name.strip() for name in names if name.strip()]
@@ -81,15 +146,43 @@ def _extract_failed_asset_names(asset_warnings: list[str]) -> list[str]:
 
 
 def _extract_synth_list(synth_content: str, heading: str) -> list[str]:
-    pattern = rf"{re.escape(heading)}:\n(.*?)(?:\n\n[A-Z][^\n]*:|\Z)"
-    match = re.search(pattern, synth_content, flags=re.DOTALL)
-    if not match:
+    heading_key = heading.strip().lower()
+    lines = synth_content.splitlines()
+    collecting = False
+    collected_lines: list[str] = []
+
+    for raw_line in lines:
+        line = raw_line.strip()
+        if not line:
+            if collecting:
+                collected_lines.append(line)
+            continue
+
+        canonical_heading = line.lower().lstrip("#").strip().rstrip(":").strip()
+        is_heading_line = canonical_heading == heading_key
+        is_other_heading = bool(re.match(r"^[A-Z][^\n]*:\s*$", line)) or line.startswith("#")
+
+        if is_heading_line:
+            collecting = True
+            continue
+
+        if collecting and is_other_heading:
+            break
+
+        if collecting:
+            collected_lines.append(line)
+
+    if not collected_lines:
         return []
-    lines = [ln.strip() for ln in match.group(1).splitlines() if ln.strip()]
+
     bullets: list[str] = []
-    for line in lines:
+    for line in collected_lines:
         if line.startswith("- "):
             cleaned = _normalize_bullet_text(line[2:])
+            if cleaned:
+                bullets.append(cleaned)
+        elif re.match(r"^\d+\.\s+", line):
+            cleaned = _normalize_bullet_text(re.sub(r"^\d+\.\s+", "", line))
             if cleaned:
                 bullets.append(cleaned)
     return bullets
@@ -209,13 +302,33 @@ def _build_sectioned_analysis_report(
 
     seen_takeaways_global: set[str] = set()
     seen_actions_global: set[str] = set()
-    assets_boilerplate = "reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits."
+    deduped_by_section: dict[str, dict[str, list[str]]] = {}
+
+    for section_name in section_order:
+        bucket = section_buckets[section_name]
+        deduped_takeaways: list[str] = []
+        deduped_actions: list[str] = []
+        seen_takeaways_section: set[str] = set()
+        seen_actions_section: set[str] = set()
+
+        for takeaway in bucket["takeaways"]:
+            if _is_reference_assets_boilerplate(takeaway):
+                continue
+            _append_unique_bullet(deduped_takeaways, seen_takeaways_section, takeaway)
+
+        for action in bucket["actions"]:
+            _append_unique_bullet(deduped_actions, seen_actions_section, action)
+
+        deduped_by_section[section_name] = {
+            "takeaways": deduped_takeaways,
+            "actions": deduped_actions,
+        }
 
     for section_name in section_order:
         bucket = section_buckets[section_name]
         legal_risks = bucket["legal_risks"]
-        takeaways = bucket["takeaways"]
-        actions = bucket["actions"]
+        takeaways = deduped_by_section[section_name]["takeaways"]
+        actions = deduped_by_section[section_name]["actions"]
 
         lines.append(f"## {section_name}")
         lines.append("")
@@ -227,44 +340,44 @@ def _build_sectioned_analysis_report(
             lines.append("- No explicit obligation or risk clauses were identified in this section.")
 
         lines.append("")
-        lines.append("### Strategic Takeaways")
         section_takeaways: list[str] = []
-        seen_takeaways_section: set[str] = set()
         for takeaway in takeaways:
             normalized = _normalize_bullet_text(takeaway)
-            key = normalized.lower()
-            if not normalized or key == assets_boilerplate:
+            key = _canonicalize_bullet_text(normalized)
+            if not normalized or not key:
                 continue
-            if key in seen_takeaways_section or key in seen_takeaways_global:
+            if key in seen_takeaways_global:
                 continue
-            seen_takeaways_section.add(key)
+            if any(_are_near_duplicate_bullets(existing, normalized) for existing in section_takeaways):
+                continue
+            if any(_are_near_duplicate_bullets(existing, normalized) for existing in seen_takeaways_global):
+                continue
             seen_takeaways_global.add(key)
             section_takeaways.append(normalized)
         if section_takeaways:
+            lines.append("### Strategic Takeaways")
             for takeaway in section_takeaways:
                 lines.append(f"- {takeaway}")
-        else:
-            lines.append("- No additional strategic takeaways for this section.")
 
         lines.append("")
-        lines.append("### Recommended Next Actions")
         section_actions: list[str] = []
-        seen_actions_section: set[str] = set()
         for action in actions:
             normalized = _normalize_bullet_text(action)
-            key = normalized.lower()
-            if not normalized:
+            key = _canonicalize_bullet_text(normalized)
+            if not normalized or not key:
                 continue
-            if key in seen_actions_section or key in seen_actions_global:
+            if key in seen_actions_global:
                 continue
-            seen_actions_section.add(key)
+            if any(_are_near_duplicate_bullets(existing, normalized) for existing in section_actions):
+                continue
+            if any(_are_near_duplicate_bullets(existing, normalized) for existing in seen_actions_global):
+                continue
             seen_actions_global.add(key)
             section_actions.append(normalized)
         if section_actions:
+            lines.append("### Recommended Next Actions")
             for action in section_actions:
                 lines.append(f"- {action}")
-        else:
-            lines.append("- No additional next actions for this section.")
 
         lines.append("")
 

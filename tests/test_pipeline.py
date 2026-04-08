@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from pdf_multi_agent_analysis.config import PipelineConfig
-from pdf_multi_agent_analysis.pipeline import run_markdown_analysis
+from pdf_multi_agent_analysis.pipeline import _build_sectioned_analysis_report, run_markdown_analysis
 
 
 def test_run_markdown_analysis_with_assets(tmp_path: Path) -> None:
@@ -80,3 +80,81 @@ def test_run_markdown_analysis_without_assets(tmp_path: Path) -> None:
     assert "last_run:" in final
     assert "# Final Synthesized Output:" in final
     assert result["assets_context_included"] is False
+
+
+def test_sectioned_report_dedupes_takeaways_and_actions() -> None:
+    section_order = ["Section A", "Section B"]
+    section_buckets = {
+        "Section A": {
+            "legal_risks": ["Confidentiality duty is broad."],
+            "takeaways": [
+                "Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.",
+                "Cap liability for indirect damages.",
+                "Cap liability for indirect damages!",
+                "Confidentiality duties appear linked to use limitations.",
+            ],
+            "actions": [
+                "Propose a mutual indemnity framework.",
+                "Propose a mutual indemnity framework",
+                "Add cure period language before termination.",
+            ],
+        },
+        "Section B": {
+            "legal_risks": ["Termination may be immediate for minor breach."],
+            "takeaways": [
+                "Cap liability for indirect damages.",
+                "Confidentiality obligations are present but scope and carve-outs should be tightened.",
+            ],
+            "actions": [
+                "Propose a mutual indemnity framework.",
+                "Negotiate a materiality qualifier for breach triggers.",
+            ],
+        },
+    }
+
+    report = _build_sectioned_analysis_report(
+        report_title="Sample",
+        chunk_count=4,
+        section_order=section_order,
+        section_buckets=section_buckets,
+        assets_context="",
+        asset_warnings=[],
+    )
+
+    assert report.count("- Cap liability for indirect damages.") == 1
+    assert "reference assets are available" not in report.lower()
+    assert report.count("- Propose a mutual indemnity framework.") == 1
+    assert "- Confidentiality duties appear linked to use limitations." in report
+    assert "- Confidentiality obligations are present but scope and carve-outs should be tightened." in report
+    assert "- Negotiate a materiality qualifier for breach triggers." in report
+
+
+def test_sectioned_report_omits_empty_strategic_subsections() -> None:
+    section_order = ["Section A", "Section B"]
+    section_buckets = {
+        "Section A": {
+            "legal_risks": ["Clause imposes broad disclosure obligations."],
+            "takeaways": ["Narrow disclosure triggers to objective criteria."],
+            "actions": ["Request explicit approval workflow for third-party sharing."],
+        },
+        "Section B": {
+            "legal_risks": ["Clause has unilateral injunctive remedy language."],
+            "takeaways": ["Narrow disclosure triggers to objective criteria."],
+            "actions": ["Request explicit approval workflow for third-party sharing."],
+        },
+    }
+
+    report = _build_sectioned_analysis_report(
+        report_title="Sample",
+        chunk_count=2,
+        section_order=section_order,
+        section_buckets=section_buckets,
+        assets_context="",
+        asset_warnings=[],
+    )
+
+    section_b = report.split("## Section B", maxsplit=1)[1]
+    assert "### Legal Risk Findings" in section_b
+    assert "- Clause has unilateral injunctive remedy language." in section_b
+    assert "### Strategic Takeaways" not in section_b
+    assert "### Recommended Next Actions" not in section_b
