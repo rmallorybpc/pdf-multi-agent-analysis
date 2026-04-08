@@ -23,11 +23,13 @@ def test_run_markdown_analysis_with_assets(tmp_path: Path) -> None:
     scorecard_path = result["scorecard_path"]
     executive_summary_path = result["executive_summary_path"]
     final_path = result["final_path"]
+    diagnostics_path = result["chunk_diagnostics_path"]
     assert report_path.exists()
     assert issues_path.exists()
     assert scorecard_path.exists()
     assert executive_summary_path.exists()
     assert final_path.exists()
+    assert diagnostics_path.exists()
     report = report_path.read_text(encoding="utf-8")
     issues = issues_path.read_text(encoding="utf-8")
     scorecard = scorecard_path.read_text(encoding="utf-8")
@@ -40,8 +42,16 @@ def test_run_markdown_analysis_with_assets(tmp_path: Path) -> None:
     assert "## Contract Metadata" in executive_summary
     assert "last_run:" in final
     assert "# Final Synthesized Output:" in final
-    assert "## Reference Assets" in report
+    assert "## Document Overview" in report
+    assert "Reference assets loaded: notes.txt. Redline strategy can be anchored to internal standards." in report
+    assert "## Reference Assets" not in report
     assert "notes.txt" in report
+    assert "Summary preview:" not in report
+    assert "Reference anchors:" not in report
+    diagnostics = diagnostics_path.read_text(encoding="utf-8")
+    assert "# Chunk Diagnostics:" in diagnostics
+    assert "### extractor" in diagnostics
+    assert "Summary preview:" in diagnostics
     assert result["assets_context_included"] is True
 
 
@@ -63,6 +73,7 @@ def test_run_markdown_analysis_without_assets(tmp_path: Path) -> None:
     executive_summary = executive_summary_path.read_text(encoding="utf-8")
     final = final_path.read_text(encoding="utf-8")
     assert "## Reference Assets" not in report
+    assert "## Document Overview" in report
     assert "# Contract Issues Summary" in issues
     assert "NOT FOUND" in scorecard
     assert "legal review required before signing" in executive_summary

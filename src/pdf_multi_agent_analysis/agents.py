@@ -51,6 +51,28 @@ def _find_clause_signals(text: str) -> dict[str, bool]:
     }
 
 
+def _detect_section_heading(text: str) -> str | None:
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    for line in lines:
+        md_match = re.match(r"^#{1,6}\s+(.+)$", line)
+        if md_match:
+            return md_match.group(1).strip()
+
+        numbered_match = re.match(r"^(\d+(?:\.\d+)*)\s*[.)-]?\s+([A-Z][^\n]{2,140})$", line)
+        if numbered_match:
+            return f"{numbered_match.group(1)} {numbered_match.group(2).strip()}"
+
+        section_match = re.match(r"^(Section\s+[A-Za-z0-9.\-]+\s*[:.-]?\s*[^\n]{2,160})$", line, flags=re.IGNORECASE)
+        if section_match:
+            return section_match.group(1).strip()
+
+        article_match = re.match(r"^(Article\s+[A-Za-z0-9.\-]+\s*[:.-]?\s*[^\n]{2,160})$", line, flags=re.IGNORECASE)
+        if article_match:
+            return article_match.group(1).strip()
+
+    return None
+
+
 def _strategic_takeaways(signals: dict[str, bool], assets_context: str) -> list[str]:
     takeaways: list[str] = []
 
@@ -107,6 +129,10 @@ class ExtractorAgent(BaseAgent):
         lines = [ln.strip() for ln in markdown_chunk.splitlines() if ln.strip()]
         key_lines = lines[:5]
         content = "\n".join(key_lines) if key_lines else "No content"
+        heading = _detect_section_heading(markdown_chunk)
+
+        if heading:
+            content += f"\n\nDetected section heading: {heading}"
 
         if assets_context.strip() and key_lines:
             overlap = sorted(_tokenize(" ".join(key_lines)) & _tokenize(assets_context))
@@ -202,8 +228,12 @@ class SynthesizerAgent(BaseAgent):
         has_assets = bool(assets_context.strip())
         takeaways = _strategic_takeaways(signals, assets_context)
         next_steps = _strategic_next_steps(signals, has_assets)
+        heading = _detect_section_heading(markdown_chunk)
 
-        output_lines = ["Summary preview: " + preview, "", "Strategic takeaways:"]
+        output_lines = ["Summary preview: " + preview]
+        if heading:
+            output_lines.extend(["", "Section heading candidate: " + heading])
+        output_lines.extend(["", "Strategic takeaways:"])
         output_lines.extend(f"- {item}" for item in takeaways)
         output_lines.append("")
         output_lines.append("Recommended next actions:")

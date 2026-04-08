@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import datetime, timezone
+import os
 import re
 
 from .agents import AnalystAgent, ExtractorAgent, LegalRiskAgent, ReviewerAgent, SynthesizerAgent
@@ -10,6 +11,7 @@ from .converter import pdf_to_markdown
 
 
 FINAL_OUTPUT_DIR = Path("rfp-markdown/generated")
+AUDIT_ROOT_DIR = Path("rfp-markdown/audit")
 
 SCORECARD_CATEGORIES: list[tuple[str, tuple[str, ...], tuple[str, ...]]] = [
     (
@@ -49,6 +51,224 @@ RISK_ORDER = {"HIGH": 3, "MEDIUM": 2, "LOW": 1, "NOT FOUND": 0}
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _make_audit_run_id() -> str:
+    run_id = os.getenv("GITHUB_RUN_ID", "").strip()
+    run_attempt = os.getenv("GITHUB_RUN_ATTEMPT", "").strip()
+    if run_id and run_attempt:
+        return f"{run_id}-{run_attempt}"
+    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+def _normalize_bullet_text(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _extract_asset_filenames(assets_context: str) -> list[str]:
+    names = re.findall(r"^##\s+(.+)$", assets_context, flags=re.MULTILINE)
+    return [name.strip() for name in names if name.strip()]
+
+
+def _extract_failed_asset_names(asset_warnings: list[str]) -> list[str]:
+    names: list[str] = []
+    for warning in asset_warnings:
+        match = re.search(r"Asset extraction failed for\s+([^:]+):", warning)
+        if not match:
+            continue
+        names.append(match.group(1).strip())
+    return names
+
+
+def _extract_synth_list(synth_content: str, heading: str) -> list[str]:
+    pattern = rf"{re.escape(heading)}:\n(.*?)(?:\n\n[A-Z][^\n]*:|\Z)"
+    match = re.search(pattern, synth_content, flags=re.DOTALL)
+    if not match:
+        return []
+    lines = [ln.strip() for ln in match.group(1).splitlines() if ln.strip()]
+    bullets: list[str] = []
+    for line in lines:
+        if line.startswith("- "):
+            cleaned = _normalize_bullet_text(line[2:])
+            if cleaned:
+                bullets.append(cleaned)
+    return bullets
+
+
+def _topic_from_legal_risk(text: str) -> str:
+    lowered = text.lower()
+    topics: list[tuple[str, tuple[str, ...]]] = [
+        ("Confidentiality and Information Use", ("confidential", "proprietary", "disclos", "non-disclosure", "nondisclosure")),
+        ("Liability and Indemnification", ("liability", "liable", "indemn", "damages", "hold harmless")),
+        ("Termination and Survival", ("terminate", "termination", "survive", "expiration", "for convenience")),
+        ("Data Protection and Security", ("data", "privacy", "security", "personal information", "breach notification")),
+        ("Governing Law and Disputes", ("governed by", "governing law", "jurisdiction", "venue", "arbitration", "forum")),
+        ("Remedies and Enforcement", ("injunct", "equitable", "specific performance", "waive", "waiver")),
+    ]
+
+    best_topic = "General Contract Provisions"
+    best_score = 0
+    for label, keywords in topics:
+        score = sum(lowered.count(keyword) for keyword in keywords)
+        if score > best_score:
+            best_topic = label
+            best_score = score
+    return best_topic
+
+
+def _find_heading_candidate(text: str) -> str | None:
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    for line in lines:
+        detected_match = re.match(r"^Detected section heading:\s*(.+)$", line, flags=re.IGNORECASE)
+        if detected_match:
+            heading = detected_match.group(1).strip()
+            if heading:
+                return heading
+
+        md_match = re.match(r"^#{1,6}\s+(.+)$", line)
+        if md_match:
+            heading = md_match.group(1).strip()
+            if heading:
+                return heading
+
+        formal_patterns = [
+            r"^(\d+(?:\.\d+)*)\s*[.)-]?\s+([A-Z][^\n]{2,140})$",
+            r"^(Section\s+[A-Za-z0-9.\-]+\s*[:.-]?\s*[^\n]{2,160})$",
+            r"^(Article\s+[A-Za-z0-9.\-]+\s*[:.-]?\s*[^\n]{2,160})$",
+        ]
+        for pattern in formal_patterns:
+            match = re.match(pattern, line, flags=re.IGNORECASE)
+            if not match:
+                continue
+            if len(match.groups()) >= 2:
+                return f"{match.group(1)} {match.group(2).strip()}".strip()
+            return match.group(1).strip()
+    return None
+
+
+def _extract_legal_risk_bullets(legal_risk_content: str) -> list[str]:
+    bullets: list[str] = []
+    for line in legal_risk_content.splitlines():
+        line = line.strip()
+        if line.startswith("- "):
+            cleaned = _normalize_bullet_text(line[2:])
+            if cleaned:
+                bullets.append(cleaned)
+    return bullets
+
+
+def _build_diagnostics_report(report_title: str, chunk_diagnostics: list[dict[str, str]]) -> str:
+    lines = [f"# Chunk Diagnostics: {report_title}", ""]
+    if not chunk_diagnostics:
+        lines.append("No chunk diagnostics were generated.")
+        return "\n".join(lines).strip() + "\n"
+
+    for item in chunk_diagnostics:
+        lines.append(f"## Chunk {item['chunk_index']}")
+        lines.append(f"### Section assignment")
+        lines.append(item["section_name"])
+        lines.append("")
+        lines.append("### extractor")
+        lines.append(item["extractor"])
+        lines.append("")
+        lines.append("### reviewer")
+        lines.append(item["reviewer"])
+        lines.append("")
+        lines.append("### analyst")
+        lines.append(item["analyst"])
+        lines.append("")
+        lines.append("### synthesizer")
+        lines.append(item["synthesizer"])
+        lines.append("")
+    return "\n".join(lines).strip() + "\n"
+
+
+def _build_sectioned_analysis_report(
+    report_title: str,
+    chunk_count: int,
+    section_order: list[str],
+    section_buckets: dict[str, dict[str, list[str]]],
+    assets_context: str,
+    asset_warnings: list[str],
+) -> str:
+    lines = [f"# Analysis Report: {report_title}", ""]
+    lines.append("## Document Overview")
+    lines.append(f"- Chunks processed: {chunk_count}. Sections detected: {len(section_order)}.")
+
+    asset_filenames = _extract_asset_filenames(assets_context)
+    if asset_filenames:
+        joined = ", ".join(asset_filenames)
+        lines.append(f"- Reference assets loaded: {joined}. Redline strategy can be anchored to internal standards.")
+
+    failed_asset_names = _extract_failed_asset_names(asset_warnings)
+    for name in failed_asset_names:
+        lines.append(
+            f"- Note: {name} could not be parsed and was excluded from this analysis. Manual review of that document is recommended."
+        )
+    lines.append("")
+
+    seen_takeaways_global: set[str] = set()
+    seen_actions_global: set[str] = set()
+    assets_boilerplate = "reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits."
+
+    for section_name in section_order:
+        bucket = section_buckets[section_name]
+        legal_risks = bucket["legal_risks"]
+        takeaways = bucket["takeaways"]
+        actions = bucket["actions"]
+
+        lines.append(f"## {section_name}")
+        lines.append("")
+        lines.append("### Legal Risk Findings")
+        if legal_risks:
+            for risk in legal_risks:
+                lines.append(f"- {risk}")
+        else:
+            lines.append("- No explicit obligation or risk clauses were identified in this section.")
+
+        lines.append("")
+        lines.append("### Strategic Takeaways")
+        section_takeaways: list[str] = []
+        seen_takeaways_section: set[str] = set()
+        for takeaway in takeaways:
+            normalized = _normalize_bullet_text(takeaway)
+            key = normalized.lower()
+            if not normalized or key == assets_boilerplate:
+                continue
+            if key in seen_takeaways_section or key in seen_takeaways_global:
+                continue
+            seen_takeaways_section.add(key)
+            seen_takeaways_global.add(key)
+            section_takeaways.append(normalized)
+        if section_takeaways:
+            for takeaway in section_takeaways:
+                lines.append(f"- {takeaway}")
+        else:
+            lines.append("- No additional strategic takeaways for this section.")
+
+        lines.append("")
+        lines.append("### Recommended Next Actions")
+        section_actions: list[str] = []
+        seen_actions_section: set[str] = set()
+        for action in actions:
+            normalized = _normalize_bullet_text(action)
+            key = normalized.lower()
+            if not normalized:
+                continue
+            if key in seen_actions_section or key in seen_actions_global:
+                continue
+            seen_actions_section.add(key)
+            seen_actions_global.add(key)
+            section_actions.append(normalized)
+        if section_actions:
+            for action in section_actions:
+                lines.append(f"- {action}")
+        else:
+            lines.append("- No additional next actions for this section.")
+
+        lines.append("")
+
+    return "\n".join(lines).strip() + "\n"
 
 
 def _build_final_markdown(report_title: str, source_label: str, synthesized_sections: list[str]) -> str:
@@ -338,36 +558,84 @@ def _analyze_markdown(
     chunks = chunk_markdown(markdown, config.chunk_size_chars, config.overlap_chars)
     agents = [ExtractorAgent(), ReviewerAgent(), AnalystAgent(), LegalRiskAgent(), SynthesizerAgent()]
 
-    report_lines = [f"# Analysis Report: {report_title}", ""]
     issues_lines = [f"# Contract Issues Summary: {report_title}", ""]
-    synthesized_sections: list[str] = []
     warnings = asset_warnings or []
-    if warnings:
-        report_lines.append("## Asset Extraction Warnings")
-        for warning in warnings:
-            report_lines.append(f"- WARNING: {warning}")
-        report_lines.append("")
+    section_buckets: dict[str, dict[str, list[str]]] = {}
+    section_order: list[str] = []
+    chunk_diagnostics: list[dict[str, str]] = []
+    synthesized_sections: list[str] = []
+    current_section: str | None = None
 
-    if assets_context.strip():
-        report_lines.append("## Reference Assets")
-        report_lines.append(assets_context[:4000].strip())
-        report_lines.append("")
+    def ensure_section(name: str) -> dict[str, list[str]]:
+        if name not in section_buckets:
+            section_buckets[name] = {
+                "legal_risks": [],
+                "takeaways": [],
+                "actions": [],
+            }
+            section_order.append(name)
+        return section_buckets[name]
 
     for i, chunk in enumerate(chunks, start=1):
-        report_lines.append(f"## Chunk {i}")
+        per_agent: dict[str, str] = {}
         for agent in agents:
             result = agent.run(chunk, assets_context=assets_context)
-            report_lines.append(f"### {result.agent_name}")
-            report_lines.append(result.content)
-            report_lines.append("")
+            per_agent[result.agent_name] = result.content
             if result.agent_name == "legal-risk":
                 issues_lines.append(f"## Chunk {i}")
                 issues_lines.append(result.content)
                 issues_lines.append("")
-            if result.agent_name == "synthesizer":
-                synthesized_sections.append(result.content)
 
-    report = "\n".join(report_lines).strip() + "\n"
+        extractor_output = per_agent.get("extractor", "")
+        heading_candidate = _find_heading_candidate(extractor_output) or _find_heading_candidate(chunk)
+        if heading_candidate:
+            current_section = heading_candidate
+            section_name = heading_candidate
+        elif current_section is not None:
+            section_name = current_section
+        else:
+            topic_source = "\n".join(
+                [
+                    chunk,
+                    per_agent.get("legal-risk", ""),
+                    per_agent.get("synthesizer", ""),
+                ]
+            )
+            section_name = _topic_from_legal_risk(topic_source)
+
+        bucket = ensure_section(section_name)
+
+        legal_risk_bullets = _extract_legal_risk_bullets(per_agent.get("legal-risk", ""))
+        for bullet in legal_risk_bullets:
+            if bullet not in bucket["legal_risks"]:
+                bucket["legal_risks"].append(bullet)
+
+        takeaways = _extract_synth_list(per_agent.get("synthesizer", ""), "Strategic takeaways")
+        actions = _extract_synth_list(per_agent.get("synthesizer", ""), "Recommended next actions")
+        bucket["takeaways"].extend(takeaways)
+        bucket["actions"].extend(actions)
+        if per_agent.get("synthesizer", "").strip():
+            synthesized_sections.append(per_agent["synthesizer"])
+
+        chunk_diagnostics.append(
+            {
+                "chunk_index": str(i),
+                "section_name": section_name,
+                "extractor": per_agent.get("extractor", ""),
+                "reviewer": per_agent.get("reviewer", ""),
+                "analyst": per_agent.get("analyst", ""),
+                "synthesizer": per_agent.get("synthesizer", ""),
+            }
+        )
+
+    report = _build_sectioned_analysis_report(
+        report_title=report_title,
+        chunk_count=len(chunks),
+        section_order=section_order,
+        section_buckets=section_buckets,
+        assets_context=assets_context,
+        asset_warnings=warnings,
+    )
     issues_report = "\n".join(issues_lines).strip() + "\n"
     scorecard, overall_rating, _not_found_categories, score_rows = _build_scorecard(report, issues_report)
     executive_summary = _build_executive_summary(
@@ -383,6 +651,8 @@ def _analyze_markdown(
         "scorecard": scorecard,
         "executive_summary": executive_summary,
         "final_markdown": _build_final_markdown(report_title, report_title, synthesized_sections),
+        "chunk_diagnostics_report": _build_diagnostics_report(report_title, chunk_diagnostics),
+        "section_count": len(section_order),
         "chunk_count": len(chunks),
     }
 
@@ -402,12 +672,17 @@ def run_pipeline(pdf_path: Path, config: PipelineConfig | None = None) -> dict:
     scorecard_path = cfg.output_dir / f"{pdf_path.stem}.scorecard.md"
     executive_summary_path = cfg.output_dir / f"{pdf_path.stem}.executive-summary.md"
     final_path = _final_output_path(pdf_path.name)
+    audit_run_dir = AUDIT_ROOT_DIR / _make_audit_run_id()
+    audit_run_dir.mkdir(parents=True, exist_ok=True)
+    diagnostics_name = f"{Path(pdf_path.name).stem}-chunk-diagnostics.md"
+    diagnostics_path = audit_run_dir / diagnostics_name
     final_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(analysis["report"], encoding="utf-8")
     issues_path.write_text(analysis["issues_report"], encoding="utf-8")
     scorecard_path.write_text(analysis["scorecard"], encoding="utf-8")
     executive_summary_path.write_text(analysis["executive_summary"], encoding="utf-8")
     final_path.write_text(analysis["final_markdown"], encoding="utf-8")
+    diagnostics_path.write_text(analysis["chunk_diagnostics_report"], encoding="utf-8")
 
     return {
         "markdown_path": md_path,
@@ -416,6 +691,8 @@ def run_pipeline(pdf_path: Path, config: PipelineConfig | None = None) -> dict:
         "scorecard_path": scorecard_path,
         "executive_summary_path": executive_summary_path,
         "final_path": final_path,
+        "chunk_diagnostics_path": diagnostics_path,
+        "section_count": analysis["section_count"],
         "chunk_count": analysis["chunk_count"],
     }
 
@@ -454,12 +731,17 @@ def run_markdown_analysis(
     scorecard_path = cfg.output_dir / f"{markdown_path.stem}.scorecard.md"
     executive_summary_path = cfg.output_dir / f"{markdown_path.stem}.executive-summary.md"
     final_path = _final_output_path(markdown_path.name)
+    audit_run_dir = AUDIT_ROOT_DIR / _make_audit_run_id()
+    audit_run_dir.mkdir(parents=True, exist_ok=True)
+    diagnostics_name = f"{markdown_path.stem}-chunk-diagnostics.md"
+    diagnostics_path = audit_run_dir / diagnostics_name
     final_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(analysis["report"], encoding="utf-8")
     issues_path.write_text(analysis["issues_report"], encoding="utf-8")
     scorecard_path.write_text(analysis["scorecard"], encoding="utf-8")
     executive_summary_path.write_text(analysis["executive_summary"], encoding="utf-8")
     final_path.write_text(analysis["final_markdown"], encoding="utf-8")
+    diagnostics_path.write_text(analysis["chunk_diagnostics_report"], encoding="utf-8")
 
     return {
         "report_path": report_path,
@@ -467,6 +749,8 @@ def run_markdown_analysis(
         "scorecard_path": scorecard_path,
         "executive_summary_path": executive_summary_path,
         "final_path": final_path,
+        "chunk_diagnostics_path": diagnostics_path,
+        "section_count": analysis["section_count"],
         "chunk_count": analysis["chunk_count"],
         "assets_context_included": bool(assets_context.strip()),
         "asset_warnings": asset_warnings,

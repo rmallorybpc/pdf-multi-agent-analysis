@@ -75,8 +75,8 @@ def test_run_markdown_analysis_writes_asset_warning_section(tmp_path: Path, monk
     assert result["assets_context_included"] is False
     assert len(result["asset_warnings"]) == 1
     assert "reference.pdf" in result["asset_warnings"][0]
-    assert "## Asset Extraction Warnings" in report
-    assert "WARNING: Asset extraction failed for reference.pdf" in report
+    assert "## Document Overview" in report
+    assert "Note: reference.pdf could not be parsed and was excluded from this analysis." in report
 
 
 def test_shared_cache_writer_uses_pdf_quality_failure_warning(tmp_path: Path, monkeypatch) -> None:
