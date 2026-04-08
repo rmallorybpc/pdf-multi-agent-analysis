@@ -62,7 +62,7 @@ Internal control systems, by their nature, have inherent limitations. Even with 
 ## Chunk 1
 ### extractor
 ---
-last_run: "2026-04-08T16:40:45Z"
+last_run: "2026-04-08T17:00:49Z"
 ---
 ## Stage C Final Markdown
 ## Stage B Executive Refinement
@@ -80,7 +80,7 @@ Potential obligations/risks:
 - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to individually as a “Party” and collectively as the “Pz
 
 ### synthesizer
-Summary preview: --- last_run: "2026-04-08T16:40:45Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v6" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v6.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-08T17:00:49Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v6" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v6.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Strategic takeaways:
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.

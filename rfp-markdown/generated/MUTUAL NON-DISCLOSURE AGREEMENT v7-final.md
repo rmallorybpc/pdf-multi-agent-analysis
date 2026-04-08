@@ -1,13 +1,13 @@
 ---
 title: "MUTUAL NON-DISCLOSURE AGREEMENT v7-final.md"
 source: "MUTUAL NON-DISCLOSURE AGREEMENT v7-final.md"
-last_run: "2026-04-08T16:41:12Z"
+last_run: "2026-04-08T17:01:16Z"
 ---
 
 # Final Synthesized Output: MUTUAL NON-DISCLOSURE AGREEMENT v7-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-08T16:40:58Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v7" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v7.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-08T17:01:03Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v7" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v7.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Strategic takeaways:
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
