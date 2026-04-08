@@ -70,6 +70,8 @@ def main() -> int:
         result = run_markdown_analysis(args.markdown, config=cfg, assets_dir=args.assets_dir)
         print(f"Wrote report: {result['report_path']}")
         print(f"Wrote issues summary: {result['issues_path']}")
+        print(f"Wrote risk scorecard: {result['scorecard_path']}")
+        print(f"Wrote executive summary: {result['executive_summary_path']}")
         print(f"Chunks analyzed: {result['chunk_count']}")
         print(f"Assets context included: {result['assets_context_included']}")
         for warning in result.get("asset_warnings", []):
@@ -85,6 +87,8 @@ def main() -> int:
     print(f"Wrote markdown: {result['markdown_path']}")
     print(f"Wrote report: {result['report_path']}")
     print(f"Wrote issues summary: {result['issues_path']}")
+    print(f"Wrote risk scorecard: {result['scorecard_path']}")
+    print(f"Wrote executive summary: {result['executive_summary_path']}")
     print(f"Chunks analyzed: {result['chunk_count']}")
     return 0
 

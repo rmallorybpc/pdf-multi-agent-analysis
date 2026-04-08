@@ -20,15 +20,24 @@ def test_run_markdown_analysis_with_assets(tmp_path: Path) -> None:
 
     report_path = result["report_path"]
     issues_path = result["issues_path"]
+    scorecard_path = result["scorecard_path"]
+    executive_summary_path = result["executive_summary_path"]
     final_path = result["final_path"]
     assert report_path.exists()
     assert issues_path.exists()
+    assert scorecard_path.exists()
+    assert executive_summary_path.exists()
     assert final_path.exists()
     report = report_path.read_text(encoding="utf-8")
     issues = issues_path.read_text(encoding="utf-8")
+    scorecard = scorecard_path.read_text(encoding="utf-8")
+    executive_summary = executive_summary_path.read_text(encoding="utf-8")
     final = final_path.read_text(encoding="utf-8")
     assert "# Analysis Report" in report
     assert "# Contract Issues Summary" in issues
+    assert "Overall contract risk rating:" in scorecard
+    assert "| Category | Risk Rating | Confidence | Rationale |" in scorecard
+    assert "## Contract Metadata" in executive_summary
     assert "last_run:" in final
     assert "# Final Synthesized Output:" in final
     assert "## Reference Assets" in report
@@ -45,12 +54,18 @@ def test_run_markdown_analysis_without_assets(tmp_path: Path) -> None:
 
     report_path = result["report_path"]
     issues_path = result["issues_path"]
+    scorecard_path = result["scorecard_path"]
+    executive_summary_path = result["executive_summary_path"]
     final_path = result["final_path"]
     report = report_path.read_text(encoding="utf-8")
     issues = issues_path.read_text(encoding="utf-8")
+    scorecard = scorecard_path.read_text(encoding="utf-8")
+    executive_summary = executive_summary_path.read_text(encoding="utf-8")
     final = final_path.read_text(encoding="utf-8")
     assert "## Reference Assets" not in report
     assert "# Contract Issues Summary" in issues
+    assert "NOT FOUND" in scorecard
+    assert "legal review required before signing" in executive_summary
     assert "last_run:" in final
     assert "# Final Synthesized Output:" in final
     assert result["assets_context_included"] is False

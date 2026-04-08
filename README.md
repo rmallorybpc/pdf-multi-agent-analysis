@@ -193,6 +193,8 @@ This writes:
 
 - analysis report: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.analysis.md`
 - issues summary: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.issues.md`
+- risk scorecard: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.scorecard.md`
+- executive summary: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.executive-summary.md`
 
 Behavior:
 
@@ -231,6 +233,8 @@ Final outputs after all chunks are processed:
 
 - Full analysis report: `<name>.analysis.md`
 - Contract issues summary (from `legal-risk` results): `<name>.issues.md`
+- Risk scorecard: `<name>.scorecard.md`
+- Executive summary: `<name>.executive-summary.md`
 
 Enable OCR fallback for scanned/image PDFs in assets (requires `pdftoppm` and `tesseract`):
 

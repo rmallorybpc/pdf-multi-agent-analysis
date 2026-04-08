@@ -479,7 +479,7 @@ jobs:
 
           # Stage final markdown plus companion analysis outputs in one commit.
           find rfp-markdown/generated -type f \
-            \( -name '*-final.md' -o -name '*-final.analysis.md' -o -name '*-final.issues.md' \) \
+            \( -name '*-final.md' -o -name '*-final.analysis.md' -o -name '*-final.issues.md' -o -name '*-final.scorecard.md' -o -name '*-final.executive-summary.md' \) \
             -print0 | xargs -0 -r git add
 
           if git diff --cached --quiet -- rfp-markdown/generated; then
