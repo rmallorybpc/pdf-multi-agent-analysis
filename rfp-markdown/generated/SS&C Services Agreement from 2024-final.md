@@ -1,13 +1,13 @@
 ---
 title: "SS&C Services Agreement from 2024-final.md"
 source: "SS&C Services Agreement from 2024-final.md"
-last_run: "2026-04-08T19:53:29Z"
+last_run: "2026-04-08T20:05:15Z"
 ---
 
 # Final Synthesized Output: SS&C Services Agreement from 2024-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-08T19:53:16Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "SS&C Services Agreement from 2024" - source_path: "rfp-pdfs/SS&C Services Agreement from 2024.pdf" - page_count: 40 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "SS&C Services Agreement...
+Summary preview: --- last_run: "2026-04-08T20:05:01Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "SS&C Services Agreement from 2024" - source_path: "rfp-pdfs/SS&C Services Agreement from 2024.pdf" - page_count: 40 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "SS&C Services Agreement...
 
 Section heading candidate: Stage C Final Markdown
 
@@ -1167,7 +1167,7 @@ Recommended next actions:
 - Validate survival period and termination mechanics against your retention and exit requirements.
 - Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
-Reference anchors: agreement, all, and, any, assets, authorized, behalf, contrary, data, due
+Reference anchors: agreement, all, and, any, assets, authorized, behalf, contrary, data, express
 
 ## Chunk 81
 Summary preview: afeguard all passwords and any other login credentials; for all purposes of this Agreement SS&C shall be entitled to assume that any user of such credentials is an authorized representative of Fund. 3. Notwithstanding anything in this Agreement to the contrary, Fund has ultimate authority over and responsibility for its tax matters and financial statement tax disclosures.

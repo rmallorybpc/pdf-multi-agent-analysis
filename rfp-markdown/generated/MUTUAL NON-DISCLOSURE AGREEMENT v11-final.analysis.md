@@ -38,6 +38,7 @@
 ### Strategic Takeaways
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
+- Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.
 - Confidentiality obligations are present, but scope and carve-outs should be tightened to reduce interpretation risk.
 - Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
 - Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
@@ -60,7 +61,7 @@
 
 ### SOC-2-Type-2-Report-Example.pdf
 This report presents an independent examination of xyz
-Company ’ sdescriptionofthe [ SystemName ] andan assessmentofwhetherthere la tedcontro ls were suitab ly designedandoperatedeffective ly in accordancewiththeapp li cab le TrustServicesCriteria throughouttheperiodfrom [ StartDate ] t o [ EndDate ], as specifiedinthereportdocumentation
+Company ’ sdescriptionofthe [ SystemName ] andan assessmentofwhetherthere la tedcontro ls were suitab ly designed and operated effective ly in accordancewiththeapp li cab le TrustServicesCriteria throughouttheperiodfrom [ StartDate ] t o [ EndDate ], as specifiedinthereportdocumentation
 
 SOC 2 Type 2 Report for XYZ
 Company Outline Section I – Independent Service Auditor’s Report 2 Section II – XYZ Company’s Management Assertion 6 Section III – XYZ Company’s Description of the System 8 Section IV – Trust Services Criteria, Related Controls, and Tests of Controls 30
@@ -107,7 +108,7 @@ Evidence was gathered through inquiry, observation, inspection of documents and 
 Inherent Limitations and Projection to Future Periods
 Bright Defense Page No. 3
 
-Internal control systems, by their nature, have inherent limitations. Even with effective design and implementation, controls may fail due t
+Internal control systems, by their nature, have inherent limitations. Even with effective design and implementation, controls may fail du
 
 ### assets-file
 - Note: assets-file was partially parsed. Some content may be incomplete. Treat references to this document in the analysis with caution.

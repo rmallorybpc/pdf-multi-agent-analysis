@@ -14,6 +14,7 @@
 
 ### Strategic Takeaways
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
+- Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
 - Forum and governing-law provisions may create practical enforcement costs, so venue should match expected dispute profile.
 - Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
@@ -49,7 +50,17 @@
 - Fund shall arrange with each such Person to deliver such information and materials on a timely basis, and SS&C will not be required to enter any agreements with that Person in order for SS&C to provide the Services.
 - Notwithstanding anything in this Agreement to the contrary, $S&C Associates (i) shall be entitled, without further enquiry, for all purposes in relation to dealings with all Persons, to rely on the authenticity, completeness and accuracy of any and all information and communications of whatever nature received by SS&C Associates in good faith, in connection with the performance of the Services and its duties and obligations hereunder, and (ii) shall not be responsible or liable to any Person for Losses arising by virtue of any such information or communication not being authentic, complete and/or accurate.
 
+### Strategic Takeaways
+- Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
+- Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
+- Forum and governing-law provisions may create practical enforcement costs, so venue should match expected dispute profile.
+- Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Prepare fallback drafting for remedies to control downside while preserving enforceability.
+- Validate survival period and termination mechanics against your retention and exit requirements.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
 ## 4. Term
 
@@ -60,13 +71,17 @@
 - Termination 5.1.
 - A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur:
 
+### Strategic Takeaways
+- Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Validate survival period and termination mechanics against your retention and exit requirements.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
 ## 5. Termination 5.1. A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur
 
 ### Legal Risk Findings
-- Termination 5.1.
-- A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur:
 - (a) The other Party breaches any material term, condition or provision of this Agreement, which breach, if capable of being cured, is not cured within 30 calendar days after the non-breaching Party gives the other Party written notice of such breach.
 - If any such event occurs, the termination will become effective immediately or on the date stated in the written notice of termination, which date shall not be greater than 90 calendar days after the event.
 - uch event occurs, the termination will become effective immediately or on the date stated in the written notice of termination, which date shall not be greater than 90 calendar days after the event.
@@ -75,7 +90,13 @@
 - If Fund elects to terminate this Agreement prior to the end of the Term, Fund agrees to pay an amount equal to the average monthly fee paid by Fund to SS&C under the Agreement multiplied by the number of months remaining in the Term.
 - To the extent any re performed by SS&C for Fund after the termination of this Agreement, all of the provisions of this Agreement except portions that are inapplicable to such continuing services shall survive the termination of this Agreement for so long as those services are performed.
 
+### Strategic Takeaways
+- Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Validate survival period and termination mechanics against your retention and exit requirements.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
 ## 6. Limitation of Liability and Indemnification
 
@@ -96,7 +117,18 @@
 - (ii) it is a limited liability company duly organized and existing and in good standing under the laws of the state of Delaware and has filed for registration with the Securities and Exchange Commission (the “SEC”) as a closed-end management investment company;
 - (a) It has and shall maintain during the term of this Agreement a business continuity policy, which is available to Fund for review and shall test the relevant aspects of such policy not less than annually.
 
+### Strategic Takeaways
+- Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
+- Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
+- Forum and governing-law provisions may create practical enforcement costs, so venue should match expected dispute profile.
+- Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Prepare fallback drafting for remedies to control downside while preserving enforceability.
+- Validate survival period and termination mechanics against your retention and exit requirements.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
+- Define approval workflow for announcements to avoid accidental disclosure during active deal activity.
 
 ## 9. Data Protection
 
@@ -124,7 +156,19 @@
 - If the Services stribution by SS&C of notices or statements to investors, SS&C may, upon advance notice to Fund, include reasonable notices describing those terms of this Agreement relating to SS&C and its liability and the limitations thereon;
 - Fund shall not, in any communications with any Person, whether oral or written, make any representations stating or implying that SS&C is providing valuations with respect to Fund’s securities, products or services, or verifying any valuations;
 
+### Strategic Takeaways
+- Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
+- Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
+- Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
+- Forum and governing-law provisions may create practical enforcement costs, so venue should match expected dispute profile.
+- Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Prepare fallback drafting for remedies to control downside while preserving enforceability.
+- Validate survival period and termination mechanics against your retention and exit requirements.
+- Define approval workflow for announcements to avoid accidental disclosure during active deal activity.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
 ## 12. Notices
 
@@ -132,13 +176,18 @@
 - Except as otherwise provided herein, all notices required or permitted under this Agreement or required by Law shall be effective only if in writing and delivered: (i) personally, (ii) by registered mail, postage prepaid, return receipt requested, (iii) by receipted prepaid courier, (iv) by any confirmed facsimile or (v) by any electronic mail, to the relevant address or number listed below (or to such other address or number as a Party shall hereafter provide by notice to the other Parties).
 - Notices shall be deemed effective when received by the Party to whom notice is required to be given.
 
+### Strategic Takeaways
+- Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Define approval workflow for announcements to avoid accidental disclosure during active deal activity.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
 ## 13. Miscellancous 13.1. Amendment; Modification. This Agreement may not be amended or modified except in writing signed by an authorized
 
 ### Legal Risk Findings
 - ber as a Party shall hereafter provide by notice to the other Parties).
-- Notices shall be deemed effective when received by the Party to whom notice is required to be given.
 - Any attempted delegation, transfer or assignment prohibited by this Agreement shall be null and void.
 - If SS&C assigns or otherwise transfers this Agreement to a third-party other than an Affiliate without Fund consent, Fund may terminate this Agreement by written notice to SS&C within 90 days of receiving notice of such assignment or transfer, subject to SS&C’s right within 30 calendar days of such notice to rescind such assignment or transfer.
 - Choice of Forum, This Agreement shall be interpreted in accordance with and governed by the Law of the State of New York.
@@ -180,7 +229,20 @@
 - (xiii) "T2000 System" shall mean SS&C GIDS’s TA2000™ computerized data processing system for shareholder
 - Any references to Law shall be construed to the Law as amended to the date of the effectiveness of the applicable provision referencing the Law.
 
+### Strategic Takeaways
+- Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
+- Forum and governing-law provisions may create practical enforcement costs, so venue should match expected dispute profile.
+- Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
+- Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
+- Confidentiality obligations are present, but scope and carve-outs should be tightened to reduce interpretation risk.
+- Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
+- Validate survival period and termination mechanics against your retention and exit requirements.
+- Define approval workflow for announcements to avoid accidental disclosure during active deal activity.
+- Prepare fallback drafting for remedies to control downside while preserving enforceability.
 
 ## 1. Fund Accounting
 
@@ -273,15 +335,32 @@
 - (v) Notwithstanding anything in this Agreement to the contrary, as it relates to the provision of the Modern Data Services, no SS&C ALPS Associate nor Data Supplier shall be liable for (i) any special, indirect or consequential damages (even if advised of the possibility of such), (ii) any delay by reason of circumstances beyond its control, including acts of civil or military authority, national emergencies, labor difficulties, fire, mechanical breakdown,
 - for all purposes of this Agreement SS&C shall be entitled to assume that any user of such credentials is an authorized representative of Fund.
 
+### Strategic Takeaways
+- Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
+- Forum and governing-law provisions may create practical enforcement costs, so venue should match expected dispute profile.
+- Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
+- Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
+- Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Validate survival period and termination mechanics against your retention and exit requirements.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
+- Define approval workflow for announcements to avoid accidental disclosure during active deal activity.
+- Prepare fallback drafting for remedies to control downside while preserving enforceability.
 
 ## 5. Maintain books and records with respect to the Services.
 
 ### Legal Risk Findings
-- for all purposes of this Agreement SS&C shall be entitled to assume that any user of such credentials is an authorized representative of Fund.
 - Any such substitute Schedule B shall become effective twenty-four (24) hours after SS&C GIDS's receipt of the document and shall be incorporated into the Agreement.
 
+### Strategic Takeaways
+- Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 
+### Recommended Next Actions
+- Classify this chunk as accept, clarify, or negotiate based on business criticality.
+- Validate survival period and termination mechanics against your retention and exit requirements.
+- Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 
 ## Reference Assets
 
@@ -293,7 +372,7 @@
 
 ### SOC-2-Type-2-Report-Example.pdf
 This report presents an independent examination of xyz
-Company ’ sdescriptionofthe [ SystemName ] andan assessmentofwhetherthere la tedcontro ls were suitab ly designedandoperatedeffective ly in accordancewiththeapp li cab le TrustServicesCriteria throughouttheperiodfrom [ StartDate ] t o [ EndDate ], as specifiedinthereportdocumentation
+Company ’ sdescriptionofthe [ SystemName ] andan assessmentofwhetherthere la tedcontro ls were suitab ly designed and operated effective ly in accordancewiththeapp li cab le TrustServicesCriteria throughouttheperiodfrom [ StartDate ] t o [ EndDate ], as specifiedinthereportdocumentation
 
 SOC 2 Type 2 Report for XYZ
 Company Outline Section I – Independent Service Auditor’s Report 2 Section II – XYZ Company’s Management Assertion 6 Section III – XYZ Company’s Description of the System 8 Section IV – Trust Services Criteria, Related Controls, and Tests of Controls 30
@@ -340,7 +419,7 @@ Evidence was gathered through inquiry, observation, inspection of documents and 
 Inherent Limitations and Projection to Future Periods
 Bright Defense Page No. 3
 
-Internal control systems, by their nature, have inherent limitations. Even with effective design and implementation, controls may fail due t
+Internal control systems, by their nature, have inherent limitations. Even with effective design and implementation, controls may fail du
 
 ### assets-file
 - Note: assets-file was partially parsed. Some content may be incomplete. Treat references to this document in the analysis with caution.
