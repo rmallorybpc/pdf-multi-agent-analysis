@@ -22,4 +22,6 @@ def test_synthesizer_preview_is_coherent_for_long_input() -> None:
     output = SynthesizerAgent().run(sample).content
 
     assert output.startswith("Summary preview: ")
+    assert "Strategic takeaways:" in output
+    assert "Recommended next actions:" in output
     assert len(output) > 60

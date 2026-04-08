@@ -38,6 +38,68 @@ def _summary_preview(text: str, max_chars: int = 500) -> str:
     return window.strip() + "..."
 
 
+def _find_clause_signals(text: str) -> dict[str, bool]:
+    lowered = text.lower()
+    return {
+        "confidentiality_scope": any(term in lowered for term in ("confidential", "proprietary", "trade secret")),
+        "use_restriction": any(term in lowered for term in ("use", "purpose", "permitted")),
+        "term_and_termination": any(term in lowered for term in ("term", "terminate", "termination", "survive")),
+        "liability_or_indemnity": any(term in lowered for term in ("liability", "liable", "indemn", "damages")),
+        "injunctive_relief": "injunct" in lowered,
+        "legal_forum": any(term in lowered for term in ("governed by", "jurisdiction", "venue", "arbitration")),
+        "public_disclosure": any(term in lowered for term in ("public announcement", "disclose", "press release")),
+    }
+
+
+def _strategic_takeaways(signals: dict[str, bool], assets_context: str) -> list[str]:
+    takeaways: list[str] = []
+
+    if signals["confidentiality_scope"] and signals["use_restriction"]:
+        takeaways.append("Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.")
+    elif signals["confidentiality_scope"]:
+        takeaways.append("Confidentiality obligations are present, but scope and carve-outs should be tightened to reduce interpretation risk.")
+
+    if signals["term_and_termination"]:
+        takeaways.append("Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.")
+
+    if signals["liability_or_indemnity"] or signals["injunctive_relief"]:
+        takeaways.append("Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.")
+
+    if signals["legal_forum"]:
+        takeaways.append("Forum and governing-law provisions may create practical enforcement costs, so venue should match expected dispute profile.")
+
+    if signals["public_disclosure"]:
+        takeaways.append("Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.")
+
+    if assets_context.strip():
+        takeaways.append("Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.")
+
+    if not takeaways:
+        takeaways.append("This chunk is operationally neutral; prioritize cross-chunk synthesis before setting negotiation posture.")
+
+    return takeaways[:4]
+
+
+def _strategic_next_steps(signals: dict[str, bool], has_assets: bool) -> list[str]:
+    actions = [
+        "Classify this chunk as accept, clarify, or negotiate based on business criticality.",
+    ]
+
+    if signals["liability_or_indemnity"] or signals["injunctive_relief"]:
+        actions.append("Prepare fallback drafting for remedies to control downside while preserving enforceability.")
+
+    if signals["term_and_termination"]:
+        actions.append("Validate survival period and termination mechanics against your retention and exit requirements.")
+
+    if signals["public_disclosure"]:
+        actions.append("Define approval workflow for announcements to avoid accidental disclosure during active deal activity.")
+
+    if has_assets:
+        actions.append("Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.")
+
+    return actions[:4]
+
+
 class ExtractorAgent(BaseAgent):
     name = "extractor"
 
@@ -136,13 +198,26 @@ class SynthesizerAgent(BaseAgent):
 
     def run(self, markdown_chunk: str, assets_context: str = "") -> AgentResult:
         preview = _summary_preview(markdown_chunk)
-        if not assets_context.strip():
-            return AgentResult(self.name, f"Summary preview: {preview}")
+        signals = _find_clause_signals(markdown_chunk)
+        has_assets = bool(assets_context.strip())
+        takeaways = _strategic_takeaways(signals, assets_context)
+        next_steps = _strategic_next_steps(signals, has_assets)
+
+        output_lines = ["Summary preview: " + preview, "", "Strategic takeaways:"]
+        output_lines.extend(f"- {item}" for item in takeaways)
+        output_lines.append("")
+        output_lines.append("Recommended next actions:")
+        output_lines.extend(f"- {item}" for item in next_steps)
+
+        if not has_assets:
+            output_lines.append("")
+            output_lines.append("Reference anchors: none detected")
+            return AgentResult(self.name, "\n".join(output_lines))
 
         ref_terms = sorted(_tokenize(markdown_chunk) & _tokenize(assets_context))
+        output_lines.append("")
         if ref_terms:
-            return AgentResult(
-                self.name,
-                f"Summary preview: {preview}\n\nReference anchors: {', '.join(ref_terms[:10])}",
-            )
-        return AgentResult(self.name, f"Summary preview: {preview}\n\nReference anchors: none detected")
+            output_lines.append("Reference anchors: " + ", ".join(ref_terms[:10]))
+        else:
+            output_lines.append("Reference anchors: none detected")
+        return AgentResult(self.name, "\n".join(output_lines))
