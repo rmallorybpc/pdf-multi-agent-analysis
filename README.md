@@ -1,62 +1,134 @@
-# pdf-multi-agent-analysis
+# PDF Multi-Agent Analysis
 
-Node-first document pipeline for:
+AI-powered contract analysis pipeline that converts PDFs into structured intelligence for contract administrators and business leaders.
 
-1. PDF to markdown conversion with OCR fallback.
-2. Multi-agent markdown refinement in GitHub Actions.
+Upload a contract PDF. The pipeline converts it to markdown, runs a multi-agent analysis, and produces five ready-to-use output documents — from detailed clause findings to a one-page executive brief.
 
-Important scope: there is no initial OpenAI-trained primary analysis stage. The refinement workflow starts at critique.
+---
 
-## Folder contracts
+## What you get
 
-- Input PDFs: `rfp-pdfs/`
-- Converted markdown: `rfp-markdown/`
-- Final generated outputs: `rfp-markdown/generated/`
-- Audit artifacts per run: `rfp-markdown/audit/`
-- Optional analysis references: `assets/`
+For every contract processed, the pipeline produces five output files:
 
-## Local setup
+| Output File | Purpose | Audience |
+|---|---|---|
+| `*-final.md` | Refined, clean markdown version of the contract | Reference |
+| `*-final.analysis.md` | Clause-by-clause findings organized by contract section, with legal risk flags, strategic takeaways, and recommended actions | Contract admin |
+| `*-final.issues.md` | Consolidated list of contractual obligations and risk clauses | Legal review |
+| `*-final.scorecard.md` | Risk rating table (LOW / MEDIUM / HIGH / NOT FOUND) across six clause categories with confidence indicators | Leadership |
+| `*-final.executive-summary.md` | One-page brief with plain-language risk assessment and recommended actions before signing | Business leader |
+
+---
+
+## About this project
+
+This repo supports the **PDF → Publish: Multi-Agent Document Intelligence** LinkedIn series, a six-episode series demonstrating AI-powered document analysis across real-world contract and document types:
+
+- Episode 1 — NDA (Legal): Clause risk, ambiguity, standstill, confidentiality
+- Episode 2 — Privacy Policy (Compliance): Completeness, vague language, regulatory alignment
+- Episode 3 — Employee Handbook (HR): Conflicting policies, outdated language, structural drift
+- Episode 4 — Marketing One-Pager (Marketing): Tone alignment, clarity, CTA strength
+- Episode 5 — Vendor Security Questionnaire (Security): Structured responses, control mapping, gaps
+- Episode 6 — Technical Specification (Engineering): Cross-section consistency, requirement drift, clarity
+
+---
+
+## How it works
+
+The pipeline runs two automated GitHub Actions workflows in sequence:
+
+**Workflow 1 — PDF conversion**
+Detects new or changed PDFs in `rfp-pdfs/`, converts them to markdown using native extraction with OCR fallback for scanned documents, and writes output to
+`rfp-markdown/`.
+
+**Workflow 2 — Multi-agent refinement and analysis**
+Runs the converted markdown through a four-stage agent pipeline:
+
+- Stage A: Critique and revision
+- Stage B: Executive refinement
+- Stage C: Final markdown formatting
+- Stage D: Claude Sonnet cleanup pass via GitHub Models (falls back to Stage C if
+  model access is unavailable)
+
+After refinement, a Python analysis pipeline runs the contract through five specialized agents (extractor, reviewer, analyst, legal-risk, synthesizer) and produces all five output files. All outputs are committed back to the repo automatically.
+
+Reference documents in the `assets/` folder (such as SOC 2 reports or NDA templates) are preprocessed and injected as context, enabling the analysis to flag deviations from your internal standards.
+
+---
+
+## Project layout
+
+```
+rfp-pdfs/                   Input PDFs — drop contracts here
+rfp-markdown/               Converted markdown files
+rfp-markdown/generated/     Final analysis output files
+rfp-markdown/audit/         Per-run audit artifacts and diagnostics
+assets/                     Optional reference documents for comparative analysis
+src/                        Python analysis pipeline source
+.github/workflows/          Automation workflows
+```
+
+---
+
+## Quickstart
+
+### 1. Automated pipeline (recommended)
+
+Add a PDF to `rfp-pdfs/` and push. Both workflows run automatically and commit all five output files to `rfp-markdown/generated/`.
+
+```bash
+# Copy your contract into the input folder
+cp your-contract.pdf rfp-pdfs/
+
+# Push to trigger the pipeline
+git add rfp-pdfs/your-contract.pdf
+git commit -m "add contract for analysis"
+git push
+```
+
+### 2. Local PDF conversion
 
 ```bash
 npm ci
-```
-
-## PDF conversion
-
-Conversion script: `convert-pdf-to-markdown.js`
-
-Runs recursively under `rfp-pdfs/` by default and mirrors relative paths into `rfp-markdown/`.
-
-```bash
 npm run convert:pdf
 ```
 
-Convert one file or directory:
+Convert a specific file or folder:
 
 ```bash
 node convert-pdf-to-markdown.js rfp-pdfs/path/to/file.pdf
 node convert-pdf-to-markdown.js rfp-pdfs/some-subfolder
 ```
 
-Options:
-
-- `--ocr-fallback`: enable OCR fallback using `pdftoppm` + `tesseract`
-- `--min-text-chars <number>`: threshold for weak native extraction (default `400`)
-
-Example:
+OCR fallback options (requires `pdftoppm` and `tesseract`):
 
 ```bash
 node convert-pdf-to-markdown.js --ocr-fallback --min-text-chars 600
 ```
 
-Each output markdown contains YAML frontmatter metadata:
+### 3. Local Python analysis
 
-- `title`
-- `source_path`
-- `page_count`
-- `extraction_method`
+Run the full analysis pipeline against an already-converted markdown file:
 
-Idempotency behavior: files are only rewritten if content changed.
+```bash
+python -m pdf_multi_agent_analysis.cli analyze-markdown \
+  "rfp-markdown/generated/your-contract-final.md" \
+  --assets-dir assets \
+  --out-dir rfp-markdown/generated
+```
+
+With OCR fallback enabled for scanned asset PDFs:
+
+```bash
+python -m pdf_multi_agent_analysis.cli analyze-markdown \
+  "rfp-markdown/generated/your-contract-final.md" \
+  --assets-dir assets \
+  --out-dir rfp-markdown/generated \
+  --asset-ocr-fallback \
+  --asset-ocr-max-pages 8
+```
+
+---
 
 ## OCR prerequisites
 
@@ -72,187 +144,62 @@ sudo apt-get update
 sudo apt-get install -y poppler-utils tesseract-ocr
 ```
 
-## Workflow 1: PDF conversion automation
+---
+
+## Workflow configuration
+
+### Workflow 1: PDF conversion
 
 File: `.github/workflows/convert-rfp-pdf-to-markdown.yml`
 
-Triggers:
+Triggers on `push` to `rfp-pdfs/**/*.pdf` or `workflow_dispatch` with optional `pdf_path` input. Detects added, modified, renamed, and deleted PDFs. Commits only when `rfp-markdown/` content changes.
 
-- `push` on `rfp-pdfs/**/*.pdf`
-- `workflow_dispatch` with optional `pdf_path`
-
-Behavior:
-
-- Detects added/modified/renamed PDFs and converts only affected files.
-- Detects deleted PDFs and auto-removes mirrored markdown in `rfp-markdown/`.
-- Commits only if `rfp-markdown/` changed.
-- Uses actor/path guards to avoid commit-loop behavior.
-
-## Workflow 2: Hybrid multimodel refinement
+### Workflow 2: Multi-agent refinement
 
 File: `.github/workflows/local-multistage-refinement.yml`
 
-Triggers:
+Triggers on `push` to `rfp-markdown/**/*.md` (excluding generated and audit paths), on successful completion of Workflow 1, or via `workflow_dispatch`.
 
-- `push` on `rfp-markdown/**/*.md` (excluding generated/audit outputs)
-- `workflow_run` when `convert-rfp-pdf-to-markdown` completes successfully
-- `workflow_dispatch` with inputs:
-	- `file_path`
-	- `uploads_glob`
+Optional environment toggles:
 
-Target selection:
+| Variable | Default |
+|---|---|
+| `ENABLE_GITHUB_MODELS_CLAUDE` | `"true"` |
+| `GITHUB_MODELS_CLAUDE_MODEL` | `anthropic/claude-sonnet-4.5` |
+| `GITHUB_MODELS_ENDPOINT` | `https://models.github.ai/inference/chat/completions` |
+| `MAX_REFINEMENT_RETRIES` | `"1"` |
 
-- `push`: processes all source markdown files under `rfp-markdown/` (excluding `generated/` and `audit/`).
-- `workflow_dispatch`: processes `file_path`, or `uploads_glob`, or all source markdown files if neither input is set.
+GitHub Models requirements: workflow permissions include `models: read`. Uses `github.token` — no Anthropic API key required.
 
-Stages:
+---
 
-1. Stage A: critique/revision agent
-2. Stage B: executive refinement agent
-3. Stage C: final markdown formatting agent
-4. Stage D: GitHub Models cleanup pass (Claude Sonnet 4.5), with safe fallback to Stage C output
+## Reference assets
 
-No initial primary analysis stage is included.
+Place supporting documents in the `assets/` folder to enable comparative analysis. The pipeline will extract their content and use it to flag deviations, missing clauses, and alignment gaps in the contract being analyzed.
 
-Execution behavior:
+Supported formats: `.md`, `.txt`, `.json`, `.yaml`, `.yml`, `.pdf`, `.docx`
 
-- Stages A/B/C always run as local deterministic transforms.
-- Stage D uses GitHub Models with `anthropic/claude-sonnet-4.5` by default.
-- If model access is unavailable (permissions/token/endpoint), Stage D falls back to Stage C output and records fallback status in audit artifacts.
-- If Claude marks content as incomprehensible, the workflow restarts from Stage A with capped retries and then fails clearly if retries are exhausted.
-- Full routing and artifact logic runs on every execution.
+Assets that cannot be parsed are flagged in the Reference Document Status section of the analysis file with a plain-language note rather than a silent failure.
 
-Outputs:
+---
 
-- Final markdown: `rfp-markdown/generated/<stem>-final.md`
-- Per-stage audit artifacts under `rfp-markdown/audit/<run-id>/`
-	- request payload
-	- raw response
-	- stage markdown output
-	- stage status (including Claude fallback/success status)
-	- run summary
+## Implementation notes
 
-GitHub Models requirements:
+The pipeline has two execution paths that complement each other:
 
-- Workflow permissions include `models: read`.
-- Uses `github.token` (no Anthropic API key required).
-- Optional environment toggles in workflow job:
-	- `ENABLE_GITHUB_MODELS_CLAUDE` (default `"true"`)
-	- `GITHUB_MODELS_CLAUDE_MODEL` (default `anthropic/claude-sonnet-4.5`)
-	- `GITHUB_MODELS_ENDPOINT` (default `https://models.github.ai/inference/chat/completions`)
-	- `MAX_REFINEMENT_RETRIES` (default `"1"`; total attempts = retries + 1)
+**Node + GitHub Actions** is the primary automation path. Push a PDF and all five output files are produced and committed automatically with no local setup required beyond a GitHub repository.
 
-Commit behavior:
+**Python CLI** provides local analysis capability for teams that want to run the pipeline on existing markdown files, integrate with other tooling, or iterate on prompts without pushing to GitHub.
 
-- Workflow commits generated outputs only when changed.
-- If automated push is blocked by permissions/protection, workflow writes manual commit instructions artifact.
+Both paths produce the same five output files and use the same underlying agent logic.
 
-Reference assets behavior:
-
-- If `assets/` exists, workflow appends it to run context.
-- Assets are preprocessed into audit cache files under `rfp-markdown/audit/<run-id>/assets-cache/`.
-- Text-like files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`) are copied into cache text artifacts.
-- PDF files are text-extracted into cache artifacts when `pdftotext` is available.
-- DOCX files are extracted when `docx2txt` is available; otherwise a placeholder note is written.
-- Binary/unsupported files are represented with placeholder notes so references remain traceable.
+---
 
 ## Reliability and safety controls
 
-- Strict shell mode (`set -euo pipefail`) in workflow shell steps.
-- Explicit stage sequencing and artifact persistence.
-- Path filtering and actor guards for safe CI behavior.
-- Idempotent conversion writes.
-
-## Acceptance checklist
-
-- `npm run convert:pdf` converts all PDFs under `rfp-pdfs/` into mirrored markdown under `rfp-markdown/`.
-- OCR fallback works when native extraction is weak and OCR tools are installed.
-- Deleting a PDF removes corresponding markdown during conversion workflow runs.
-- Multi-agent workflow starts at critique stage and excludes initial primary analysis.
-- Refinement workflow executes local deterministic stage transforms and writes audit artifacts.
-- Final outputs are written to `rfp-markdown/generated/*-final.md`.
-- Workflows commit only when generated/converted files changed, including newly created files.
-- Audit artifacts and run summary are uploaded for traceability.
-
-## Legacy notes
-
-The earlier Python scaffold remains in the repo as legacy reference, but Node + GitHub Actions is the primary implementation path.
-
-## Local Python analysis of existing markdown + assets
-
-If you already have a converted markdown file, run the Python CLI directly against it and include reference files from `assets/`:
-
-```bash
-python -m pdf_multi_agent_analysis.cli analyze-markdown \
-	"rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.md" \
-	--assets-dir assets \
-	--out-dir rfp-markdown/generated
-```
-
-This writes:
-
-- analysis report: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.analysis.md`
-- issues summary: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.issues.md`
-- risk scorecard: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.scorecard.md`
-- executive summary: `rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.executive-summary.md`
-
-Behavior:
-
-- The markdown is chunked and processed by extractor/reviewer/analyst/synthesizer agents.
-- The pipeline includes a legal-risk stage and writes a contract-focused issues summary.
-- Asset references from `assets/` are preprocessed into text context and injected into agent runs.
-- Supported asset extraction: text files (`.md`, `.txt`, `.json`, `.yaml`, `.yml`), `.pdf` (via `pypdf` with OCR fallback enabled by default), and `.docx` (basic XML extraction).
-
-### Agent Steps (Python markdown analysis)
-
-Agent metadata for this analysis flow:
-
-- Agent runtime: local Python pipeline agents (`extractor`, `reviewer`, `analyst`, `legal-risk`, `synthesizer`)
-- Copilot assistant name: GitHub Copilot
-- Copilot model label: GPT-5.3-Codex
-
-For each markdown chunk, the pipeline runs agents in this exact order:
-
-1. `extractor`
-	- Step 1 role: takes the chunk and extracts the first key lines as a focused content snapshot.
-	- If `assets/` context is present, it also reports overlap terms between the chunk and reference assets.
-2. `reviewer`
-	- Step 2 role: performs structural checks such as TODO markers and short/incomplete chunk warnings.
-	- If `assets/` context is present, it reports how many alignment terms were found.
-3. `analyst`
-	- Step 3 role: computes chunk-level metrics (word count and unique terms).
-	- If `assets/` context is present, it also reports shared term counts against assets.
-4. `legal-risk`
-	- Step 4 role: identifies contractual obligation/risk language (for example: shall, must, termination, liability, indemnity, jurisdiction).
-	- This is the stage that feeds the contract issues output file: `*-final.issues.md` (or `<name>.issues.md`).
-5. `synthesizer`
-	- Step 5 role: generates a concise summary preview of the chunk.
-	- If `assets/` context is present, it appends detected reference anchors.
-
-Final outputs after all chunks are processed:
-
-- Full analysis report: `<name>.analysis.md`
-- Contract issues summary (from `legal-risk` results): `<name>.issues.md`
-- Risk scorecard: `<name>.scorecard.md`
-- Executive summary: `<name>.executive-summary.md`
-
-Enable OCR fallback for scanned/image PDFs in assets (requires `pdftoppm` and `tesseract`):
-
-```bash
-python -m pdf_multi_agent_analysis.cli analyze-markdown \
-	"rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.md" \
-	--assets-dir assets \
-	--out-dir rfp-markdown/generated \
-	--asset-ocr-fallback \
-	--asset-ocr-max-pages 8
-```
-
-Disable OCR fallback when needed:
-
-```bash
-python -m pdf_multi_agent_analysis.cli analyze-markdown \
-	"rfp-markdown/generated/MUTUAL NON-DISCLOSURE AGREEMENT-final.md" \
-	--assets-dir assets \
-	--out-dir rfp-markdown/generated \
-	--no-asset-ocr-fallback
-```
+- Strict shell mode (`set -euo pipefail`) in all workflow steps
+- Explicit stage sequencing with artifact persistence between stages
+- Path filtering and actor guards to prevent commit loops
+- Idempotent writes — files are only updated when content changes
+- Stage D fallback to Stage C output if GitHub Models is unavailable
+- Asset extraction quality thresholds — degraded OCR output is flagged rather than silently injected into analysis context
