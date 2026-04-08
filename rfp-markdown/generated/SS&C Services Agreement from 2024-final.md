@@ -1,13 +1,15 @@
 ---
 title: "SS&C Services Agreement from 2024-final.md"
 source: "SS&C Services Agreement from 2024-final.md"
-last_run: "2026-04-08T17:44:28Z"
+last_run: "2026-04-08T18:57:00Z"
 ---
 
 # Final Synthesized Output: SS&C Services Agreement from 2024-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-08T17:44:16Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "SS&C Services Agreement from 2024" - source_path: "rfp-pdfs/SS&C Services Agreement from 2024.pdf" - page_count: 40 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "SS&C Services Agreement...
+Summary preview: --- last_run: "2026-04-08T18:56:46Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "SS&C Services Agreement from 2024" - source_path: "rfp-pdfs/SS&C Services Agreement from 2024.pdf" - page_count: 40 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "SS&C Services Agreement...
+
+Section heading candidate: Stage C Final Markdown
 
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
@@ -85,6 +87,8 @@ Reference anchors: affiliates, agents, all, and, any, applicable, are, behalf, c
 ## Chunk 6
 Summary preview: ices. (v) “Third Party Claim” means a Claim (i) brought by any Person other than the indemnifying Party or (ii) brought by a Party on behalf of or that could otherwise be asserted by a third party. (w) “Website” means the website for Fund. 1.2. Other capitalized terms used in this Agreement but not defined in this clause 1 shall have the meanings ascribed thereto. 13. Section and Schedule headings shall not affect the interpretation of this Agreement.
 
+Section heading candidate: 2 Services and Fees
+
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 - Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
@@ -101,6 +105,8 @@ Reference anchors: accordance, agreement, and, any, are, behalf, between, condit
 
 ## Chunk 7
 Summary preview: es of any Party. The Parties have mutually negotiated the terms hereof and there shall be no presumption of law relating to the interpretation of contracts against the drafter. 2. Services and Fees 2.1. Subject to the terms of this Agreement, $S&C will perform the Services set forth in Schedule A for Fund with reasonable care, skill, prudence and diligence, in consideration of the fees, expenses and related payment terms listed in a Fee Letter (defined below).
+
+Section heading candidate: 2 Services and Fees
 
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
@@ -187,6 +193,8 @@ Reference anchors: accuracy, accurate, agreement, all, and, any, applicable, ava
 ## Chunk 13
 Summary preview: C Associates may request advice from counsel for any of Fund, Fund’s independent board members, its officers, or Management (including its investment adviser or sub-adviser), each at Fund’s expense. 3.8.
 
+Section heading candidate: 4 Term
+
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 - Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.
@@ -200,6 +208,8 @@ Reference anchors: agreement, agrees, and, any, applicable, are, copy, date, eff
 
 ## Chunk 14
 Summary preview: cessive term (such periods, in the aggregate, the “Term”). 5. Termination 5.1. A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur: (a) The other Party breaches any material term, condition or provision of this Agreement, which breach, if capable of being cured, is not cured within 30 calendar days after the non-breaching Party gives the other Party written notice of such breach.
+
+Section heading candidate: 5 Termination 5.1. A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur:
 
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
@@ -228,6 +238,8 @@ Reference anchors: agree, agreement, agrees, all, already, and, any, are, data, 
 
 ## Chunk 16
 Summary preview: he provisions of this Agreement except portions that are inapplicable to such continuing services shall survive the termination of this Agreement for so long as those services are performed. servic 5.4. Termination of this Agreement shall not affect: (i) any liabilities or obligations of any Party arising before such termination (including payment of fees and expenses) or (ii) any damages or other remedies to which a Party may be entitled for breach of this Agreement or otherwise.
+
+Section heading candidate: 6 Limitation of Liability and Indemnification
 
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
@@ -309,6 +321,8 @@ Reference anchors: access, accordance, agreement, all, and, any, assets, authori
 ## Chunk 21
 Summary preview: tractually bind it to the terms and conditions in this Agreement and that this Agreement constitutes a legal, valid and binding obligation of it, enforceable against it in accordance with its terms. 7.2. Fund represents and warrants to SS&C that: (i) it has actual authority to provide instructions and direction and that all such instructions and directions are consistent with the Governing Documents of Fund and other corporate actions thereof and;
 
+Section heading candidate: 7.3 SS&C represents and warrants to Fund that:
+
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 - Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
@@ -326,6 +340,8 @@ Reference anchors: accordance, agreement, all, and, any, applicable, are, aspect
 ## Chunk 22
 Summary preview: licy not less than annually. (b) It will promptly disclose to Fund any development that may have a material negative impact on its ability to perform the Services in compliance with applicable law.
 
+Section heading candidate: 9 Data Protection
+
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 - Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
@@ -342,6 +358,8 @@ Reference anchors: accuracy, agreement, all, and, any, applicable, appropriate, 
 
 ## Chunk 23
 Summary preview: policies. https://www.sec.gov/Archives/edgar/data/1998043/000121465924010347/ex99_k.htm 9/40 4/8/26, 11:32 AM sec.gov/Archives/edgar/data/1998043/000121465924010347/ex99_k.htm 9. Data Protection 9.1. From time to time and in connection with the Services SS&C may obtain access to certain personal data from Fund or from Fund investors and prospective investors r on behalf of Fund.
+
+Section heading candidate: 9 Data Protection
 
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
@@ -372,6 +390,8 @@ Reference anchors: agreement, agrees, and, any, applicable, approved, authorized
 ## Chunk 25
 Summary preview: ty’s Intellectual Property Rights or applicable law. Fund further acknowledges and agrees that Fund will obtain sufficient license or other legal rights to the Created Materials at its sole expense. 10.3.
 
+Section heading candidate: 11.2 Each Party may disclose the other Party’s Confidential Information:
+
 Strategic takeaways:
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
@@ -388,6 +408,8 @@ Reference anchors: affiliates, agreement, agrees, and, any, applicable, are, bet
 
 ## Chunk 26
 Summary preview: ess, affairs, customers, clients or suppliers of the other Party or its Affiliates, except as permitted by this Section 11. 11.2.
+
+Section heading candidate: 11.2 Each Party may disclose the other Party’s Confidential Information:
 
 Strategic takeaways:
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
@@ -435,6 +457,8 @@ Reference anchors: activities, agreement, and, any, are, assets, connection, dat
 ## Chunk 29
 Summary preview: ents, securities, products or services; or acting as a fiduciary, investment advisor, tax preparer or advisor, custodian or bailee with respect to Fund or any of its investors or customers. clients its business or industry; provided that Fund is not named in such public include the 11.6.
 
+Section heading candidate: 12 Notices
+
 Strategic takeaways:
 - Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
 - Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.
@@ -448,6 +472,8 @@ Reference anchors: address, agreement, agrees, all, and, any, authorized, availa
 
 ## Chunk 30
 Summary preview: ber as a Party shall hereafter provide by notice to the other Parties). Notices shall be deemed effective when received by the Party to whom notice is required to be given. If to SS&C (to each of): SS&C Technologies, Inc. 4 Times Square, 6!” Floor New York, New York 10036 Attention:Chief Operating Officer General Counsel E-mail: notices@sscine.com ALPS Fund Services, Inc.
+
+Section heading candidate: 13 Miscellancous 13.1. Amendment; Modification. This Agreement may not be amended or modified except in writing signed by an authorized
 
 Strategic takeaways:
 - Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.
@@ -602,6 +628,8 @@ Reference anchors: accuracy, agents, agreement, all, and, any, applicable, are, 
 
 ## Chunk 41
 Summary preview: application User information. 5. The following Services will be performed by SS&C and, as applicable, are contingent on the performance by Fund and Management of the duties and obligations listed. B. Registered Fund Accounting and Administration (applicable to Fund only and not to separate sleeves, subsidiaries or 1.
+
+Section heading candidate: 1 Fund Accounting
 
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
@@ -1144,6 +1172,8 @@ Reference anchors: agreement, all, and, any, assets, authorized, behalf, contrar
 ## Chunk 81
 Summary preview: afeguard all passwords and any other login credentials; for all purposes of this Agreement SS&C shall be entitled to assume that any user of such credentials is an authorized representative of Fund. 3. Notwithstanding anything in this Agreement to the contrary, Fund has ultimate authority over and responsibility for its tax matters and financial statement tax disclosures.
 
+Section heading candidate: 5 Maintain books and records with respect to the Services.
+
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 - Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.
@@ -1157,6 +1187,8 @@ Reference anchors: agreement, all, and, any, applicable, are, authorized, bears,
 
 ## Chunk 82
 Summary preview: nd and SS&C GIDS, Fund authorizes the following Fund personnel to provide instructions to SS&C GIDS, and receive inquiries from SS&C GIDS in connection with Schedule A and the Agreement: Name Title This Schedule may be revised by Fund by providing SS&C GIDS with a substitute Schedule B. Any such substitute Schedule B shall become effective twenty-four (24) hours after SS&C GIDS's receipt of the document and shall be incorporated into the Agreement.
+
+Section heading candidate: Stage A Notes
 
 Strategic takeaways:
 - Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.

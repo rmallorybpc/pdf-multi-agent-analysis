@@ -1,7 +1,7 @@
 ## Contract Metadata
 - Contract name: MUTUAL NON-DISCLOSURE AGREEMENT v13-final
 - Contract type: Non-disclosure agreement
-- Parties involved: the Parties
+- Parties involved: the parties regarding the Opportunity, provided, however, that, to the extent practicable, a Party that intends to make such a public announcement shall discuss any such proposed announcement with the other Party prior to making such announcement
 - Effective date: Not stated
 - Analysis run date: 2026-04-08
 

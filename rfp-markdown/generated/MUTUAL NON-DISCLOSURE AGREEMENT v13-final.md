@@ -1,13 +1,15 @@
 ---
 title: "MUTUAL NON-DISCLOSURE AGREEMENT v13-final.md"
 source: "MUTUAL NON-DISCLOSURE AGREEMENT v13-final.md"
-last_run: "2026-04-08T17:42:53Z"
+last_run: "2026-04-08T18:55:09Z"
 ---
 
 # Final Synthesized Output: MUTUAL NON-DISCLOSURE AGREEMENT v13-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-08T17:42:41Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v13" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v13.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-08T18:54:55Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v13" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v13.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+
+Section heading candidate: Stage C Final Markdown
 
 Strategic takeaways:
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
@@ -198,6 +200,8 @@ Reference anchors: addition, address, agree, agreement, all, and, any, available
 ## Chunk 13
 Summary preview: irrevocably and unconditionally waive and agree not to plead or claim in any such court that any such action, suit or proceeding brought in any such court has been brought in an inconvenient forum. 13. Neither the failure nor delay by any Party in exercising any right hereunder will operate as a waiver of such right, and no single or partial exercise of a right will preclude any other or further exercise of such right.
 
+Section heading candidate: 1530 Shields Drive
+
 Strategic takeaways:
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
 - Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.
@@ -214,6 +218,8 @@ Reference anchors: address, agree, agreement, all, and, any, company, corporatio
 
 ## Chunk 14
 Summary preview: y Yetman, President and Chief Executive Officer “Company” TECHNOLOGY RESEARCH CORPORATION By: — /s/ Robert D. Woltil Name: Robert D. Woltil Title: VP Finance, CFO and Secretary Company’s Address: 5250 140th Avenue North Clearwater, Florida 33760 Attention: Owen Farren, President and Chief Executive Officer ### Stage A Notes - Lines: 93 - Flags: 0
+
+Section heading candidate: Stage A Notes
 
 Strategic takeaways:
 - Forum and governing-law provisions may create practical enforcement costs, so venue should match expected dispute profile.
