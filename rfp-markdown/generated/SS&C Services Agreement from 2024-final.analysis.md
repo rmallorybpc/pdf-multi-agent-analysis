@@ -1,9 +1,9 @@
 # Analysis Report: SS&C Services Agreement from 2024-final.md
 
 ## Document Overview
-- Chunks processed: 82. Sections detected: 13.
+- Chunks processed: 82. Sections detected: 10.
 
-## Stage C Final Markdown
+## Definitions and Interpretation
 
 ### Legal Risk Findings
 - Notwithstanding the foregoing, “Action” shall not include any ordinary course regulatory audits or routine regulatory requests for information.
@@ -27,7 +27,7 @@
 - Define approval workflow for announcements to avoid accidental disclosure during active deal activity.
 - Prepare fallback drafting for remedies to control downside while preserving enforceability.
 
-## 2 Services and Fees
+## 2. Services and Fees
 
 ### Legal Risk Findings
 - Other capitalized terms used in this Agreement but not defined in this clause 1 shall have the meanings ascribed thereto.
@@ -51,7 +51,7 @@
 
 
 
-## 4 Term
+## 4. Term
 
 ### Legal Risk Findings
 - Fund agrees that, to the extent applicable, if officer position(s) are filled by SS&C Associates, such SS&C Associate(s) shall be covered by Fund’s Directors & Officers/Errors & Omissions Policy (the “Policy”), and Fund shall use reasonable efforts to ensure that such coverage be (i) reinstated should the Policy be cancelled;
@@ -62,7 +62,7 @@
 
 
 
-## 5 Termination 5.1. A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur:
+## 5. Termination 5.1. A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur
 
 ### Legal Risk Findings
 - Termination 5.1.
@@ -77,7 +77,7 @@
 
 
 
-## 6 Limitation of Liability and Indemnification
+## 6. Limitation of Liability and Indemnification
 
 ### Legal Risk Findings
 - he provisions of this Agreement except portions that are inapplicable to such continuing services shall survive the termination of this Agreement for so long as those services are performed.
@@ -93,18 +93,12 @@
 - Any expenses (including legal costs) incurred by SS&C Associates in defending or responding to any Claim (or in enforcing this provision) shall, from time to time, be paid by Fund prior to the final disposition of such matter (including determining whether this indemnity should apply or not) upon receipt by Fund of an undertaking by SS&C to repay such amount if it shall be determined that SS&C is not entitled to be indemnified.
 - Notwithstanding the foregoing, Fund shall indemnify, defend, and hold harmless SS&C and its Affiliates from and against Losses (including reasonable legal fees and costs to enforce this provision) that SS&C or its Affiliates suffer, incur, or pay as a result of any Third Party Claim that the Fund Materials infringe, or cause the infringement of, the Intellectual Property Rights of a third party, except to extent such infringement is a result of or arises out of modifications to or improper use of the Fund Materials made by SS&C or its Affiliates not previously authorized by Fund, if such claim would have been avoided without such modification or use.
 - (c) It has all necessary legal power and authority to enter into this Agreement, the execution of which has been duly authorized and will not violate the terms of any other agreement.
-
-
-
-## 7.3 SS&C represents and warrants to Fund that:
-
-### Legal Risk Findings
 - (ii) it is a limited liability company duly organized and existing and in good standing under the laws of the state of Delaware and has filed for registration with the Securities and Exchange Commission (the “SEC”) as a closed-end management investment company;
 - (a) It has and shall maintain during the term of this Agreement a business continuity policy, which is available to Fund for review and shall test the relevant aspects of such policy not less than annually.
 
 
 
-## 9 Data Protection
+## 9. Data Protection
 
 ### Legal Risk Findings
 - (c) It has sufficient resources, appropriate organisational structure, necessary systems and employs sufficient personnel with the necessary skills, knowledge, expertise and experience to properly and professionally perform the Services and its operating staff shall devote and will continue to devote during the term of this Agreement, such time to the conduct of the
@@ -117,12 +111,6 @@
 - Fund shall not (unless required by Law) either before or after the termination of this Agreement, disclose to any Person not authorized by SS&C to receive the same including as described in this Agreement, any information concerning the SS&C Property and shall use reasonable efforts to prevent any such disclosure.
 - son not authorized by SS&C to receive the same including as described in this Agreement, any information concerning the SS&C Property and shall use reasonable efforts to prevent any such disclosure.
 - Fund acknowledges and agrees that SS&C makes no representation or warranty that the Website design and other Services provided by or on behalf of SS&C in connection with this Agreement to the extent based on Fund IP and Fund Materials, including but not limited to, any branding, logos or other images provided or created by SS&C based on Fund IP and Fund Materials (“Created Materials”), will not infringe or violate any third-party’s Intellectual Property Rights or applicable law.
-
-
-
-## 11.2 Each Party may disclose the other Party’s Confidential Information:
-
-### Legal Risk Findings
 - If Fund is not able to satisfy the foregoing requirements, then SS&C will be entitled to terminate the Services provided for under Section F of Schedule A immediately.
 - Upon termination of this Agreement, SS&C will cease to use Fund IP and Fund Materials.
 - Each Party shall not at any time disclose to any Person any Confidential Information concerning the business, affairs, customers, clients or suppliers of the other Party or its Affiliates, except as permitted by this Section 11.
@@ -138,7 +126,7 @@
 
 
 
-## 12 Notices
+## 12. Notices
 
 ### Legal Risk Findings
 - Except as otherwise provided herein, all notices required or permitted under this Agreement or required by Law shall be effective only if in writing and delivered: (i) personally, (ii) by registered mail, postage prepaid, return receipt requested, (iii) by receipted prepaid courier, (iv) by any confirmed facsimile or (v) by any electronic mail, to the relevant address or number listed below (or to such other address or number as a Party shall hereafter provide by notice to the other Parties).
@@ -146,7 +134,7 @@
 
 
 
-## 13 Miscellancous 13.1. Amendment; Modification. This Agreement may not be amended or modified except in writing signed by an authorized
+## 13. Miscellancous 13.1. Amendment; Modification. This Agreement may not be amended or modified except in writing signed by an authorized
 
 ### Legal Risk Findings
 - ber as a Party shall hereafter provide by notice to the other Parties).
@@ -194,7 +182,7 @@
 
 
 
-## 1 Fund Accounting
+## 1. Fund Accounting
 
 ### Legal Risk Findings
 - SS&C ALPS agrees to maintain at all times a program reasonably designed to prevent violations of the federal securities laws (as defined in Rule 38a-1 under the 1940 Act) with respect to the services provided hereunder, and shall provide to Fund a certification to such effect no less frequently than annually or as otherwise reasonably requested by Fund.
@@ -287,16 +275,10 @@
 
 
 
-## 5 Maintain books and records with respect to the Services.
+## 5. Maintain books and records with respect to the Services.
 
 ### Legal Risk Findings
 - for all purposes of this Agreement SS&C shall be entitled to assume that any user of such credentials is an authorized representative of Fund.
-
-
-
-## Stage A Notes
-
-### Legal Risk Findings
 - Any such substitute Schedule B shall become effective twenty-four (24) hours after SS&C GIDS's receipt of the document and shall be incorporated into the Agreement.
 
 

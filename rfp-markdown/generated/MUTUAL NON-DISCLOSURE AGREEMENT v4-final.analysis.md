@@ -1,9 +1,9 @@
 # Analysis Report: MUTUAL NON-DISCLOSURE AGREEMENT v4-final.md
 
 ## Document Overview
-- Chunks processed: 14. Sections detected: 3.
+- Chunks processed: 14. Sections detected: 1.
 
-## Stage C Final Markdown
+## Definitions and Interpretation
 
 ### Legal Risk Findings
 - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to individually as a “Party” and collectively as the “Pz
@@ -30,6 +30,10 @@
 - The Parties irrevocably and unconditionally consent to submit to the exclusive jurisdiction of the courts of the State of Delaware in New Castle County, Delaware, for any actions, suits or proceedings arising out of or relating to this Agreement (and the Parties agree not to commence any action, suit or proceeding relating thereto, except in such courts), and further agree that service of any process, summons, notice or document by U.S.
 - registered mail to the other Party’s address set forth next to their signature hereto shall be effective service of process for any action, suit or proceeding brought in any such court.
 - The Parties irrevocably and unconditionally waive any objection to the laying of venue of any action, suit or proceeding arising out of this Agreement, in the courts of the State of Delaware or the United States of America located in New Castle County, Delaware, and hereby further irrevocably and unconditionally waive and agree not to plead or claim in any such court that any such action, suit or proceeding brought in any such court has been brought in an inconvenient forum.
+- irrevocably and unconditionally waive and agree not to plead or claim in any such court that any such action, suit or proceeding brought in any such court has been brought in an inconvenient forum.
+- The term “person” means any individual, corporation, partnership, limited liability company, joint venture, estate, trust, association, organization, or other entity or governmental body.
+- The prevailing Party or Parties in any dispute or legal action regarding the subject matter of this Agreement (as finally determined by a court of competent jurisdiction) shall be entitled to recover attorneys’ fees and costs.
+- This Agreement may be executed and delivered by facsimile or .pdf signature and in two or more counterparts, each of which shall be deemed an original, but all of which together shall constitute one and the same instrument.
 
 ### Strategic Takeaways
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
@@ -45,23 +49,6 @@
 - Map identified clauses to precedent language in assets and rank redlines by expected negotiation resistance.
 - Define approval workflow for announcements to avoid accidental disclosure during active deal activity.
 - Prepare fallback drafting for remedies to control downside while preserving enforceability.
-
-## 1530 Shields Drive
-
-### Legal Risk Findings
-- irrevocably and unconditionally waive and agree not to plead or claim in any such court that any such action, suit or proceeding brought in any such court has been brought in an inconvenient forum.
-- The term “person” means any individual, corporation, partnership, limited liability company, joint venture, estate, trust, association, organization, or other entity or governmental body.
-- The prevailing Party or Parties in any dispute or legal action regarding the subject matter of this Agreement (as finally determined by a court of competent jurisdiction) shall be entitled to recover attorneys’ fees and costs.
-- This Agreement may be executed and delivered by facsimile or .pdf signature and in two or more counterparts, each of which shall be deemed an original, but all of which together shall constitute one and the same instrument.
-
-
-
-## Stage A Notes
-
-### Legal Risk Findings
-- No explicit obligation or risk clauses were identified in this section.
-
-
 
 ## Reference Assets
 

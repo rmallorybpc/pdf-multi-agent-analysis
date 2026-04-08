@@ -4,8 +4,8 @@ Overall contract risk rating: HIGH
 | --- | --- | --- | --- |
 | Confidentiality obligations | HIGH | HIGH | Detected clause language indicates high exposure; sample: # Analysis Report: MUTUAL NON-DISCLOSURE AGREEMENT v13-final.md ## Document Overview - Chunks processed: 14. |
 | Liability and indemnification | HIGH | HIGH | Detected clause language indicates high exposure; sample: - Each Party acknowledges and agrees that any breach of this Agreement would cause irreparable harm to the other Party for which damages are not an adequate rem... |
-| Termination rights | HIGH | HIGH | Detected clause language indicates high exposure; sample: ## Stage C Final Markdown ### Legal Risk Findings - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to individua... |
-| Intellectual property | HIGH | HIGH | Detected clause language indicates high exposure; sample: ## Stage C Final Markdown ### Legal Risk Findings - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to individua... |
+| Termination rights | HIGH | HIGH | Detected clause language indicates high exposure; sample: ## Definitions and Interpretation ### Legal Risk Findings - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to i... |
+| Intellectual property | HIGH | HIGH | Detected clause language indicates high exposure; sample: ## Definitions and Interpretation ### Legal Risk Findings - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to i... |
 | Jurisdiction and governing law | HIGH | HIGH | Detected clause language indicates high exposure; sample: - The Parties irrevocably and unconditionally consent to submit to the exclusive jurisdiction of the courts of the State of Delaware in New Castle County, Delaw... |
 | Data protection and security | HIGH | HIGH | Detected clause language indicates high exposure; sample: - Each Party acknowledges and agrees that any breach of this Agreement would cause irreparable harm to the other Party for which damages are not an adequate rem... |
 
