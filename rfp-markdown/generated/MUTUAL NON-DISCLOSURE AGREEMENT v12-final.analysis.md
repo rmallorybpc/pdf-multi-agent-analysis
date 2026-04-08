@@ -1,4 +1,4 @@
-# Analysis Report: MUTUAL NON-DISCLOSURE AGREEMENT v11-final.md
+# Analysis Report: MUTUAL NON-DISCLOSURE AGREEMENT v12-final.md
 
 ## Asset Extraction Warnings
 - WARNING: Asset extraction failed for MUTUAL NON-DISCLOSURE AGREEMENT.pdf: no extractable text found with native extraction or OCR fallback
@@ -62,7 +62,7 @@ Internal control systems, by their nature, have inherent limitations. Even with 
 ## Chunk 1
 ### extractor
 ---
-last_run: "2026-04-08T16:17:52Z"
+last_run: "2026-04-08T16:18:04Z"
 ---
 ## Stage C Final Markdown
 ## Stage B Executive Refinement
@@ -80,7 +80,7 @@ Potential obligations/risks:
 - to evaluate the Opportunity and will not di Counterparty and the Company are sometimes referred to individually as a “Party” and collectively as the “Pz
 
 ### synthesizer
-Summary preview: --- last_run: "2026-04-08T16:17:52Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v11" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v11.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
+Summary preview: --- last_run: "2026-04-08T16:18:04Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "MUTUAL NON-DISCLOSURE AGREEMENT v12" - source_path: "rfp-pdfs/MUTUAL NON-DISCLOSURE AGREEMENT v12.pdf" - page_count: 6 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "MUTUAL NON-DISCLOSURE...
 
 Reference anchors: accordance, agree, agreement, and, are, below, between, business, can, company
 
