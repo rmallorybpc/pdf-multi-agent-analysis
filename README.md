@@ -18,6 +18,8 @@ For every contract processed, the pipeline produces five output files:
 | `*-final.scorecard.md` | Risk rating table (LOW / MEDIUM / HIGH / NOT FOUND) across six clause categories with confidence indicators | Leadership |
 | `*-final.executive-summary.md` | One-page brief with plain-language risk assessment and recommended actions before signing | Business leader |
 
+**See a sample output:** [SS&C Services Agreement — Executive Summary](rfp-markdown/generated/SS%26C%20Services%20Agreement%20from%202024-final.executive-summary.md)
+
 ---
 
 ## About this project
@@ -38,6 +40,7 @@ This repo supports the **PDF → Publish: Multi-Agent Document Intelligence** Li
 The pipeline runs two automated GitHub Actions workflows in sequence:
 
 **Workflow 1 — PDF conversion**
+
 Detects new or changed PDFs in `rfp-pdfs/`, converts them to markdown using native extraction with OCR fallback for scanned documents, and writes output to
 `rfp-markdown/`.
 
@@ -66,6 +69,7 @@ rfp-markdown/audit/         Per-run audit artifacts and diagnostics
 assets/                     Optional reference documents for comparative analysis
 src/                        Python analysis pipeline source
 .github/workflows/          Automation workflows
+prompts/                    Agent prompt files — edit these to change analysis behavior
 ```
 
 ---
@@ -160,6 +164,15 @@ File: `.github/workflows/local-multistage-refinement.yml`
 
 Triggers on `push` to `rfp-markdown/**/*.md` (excluding generated and audit paths), on successful completion of Workflow 1, or via `workflow_dispatch`.
 
+Target selection:
+
+- **push**: processes only the markdown files added or modified in the triggering
+  commit — not all source files in the folder
+- **workflow_dispatch**: processes `file_path`, or `uploads_glob`, or all source
+  markdown files if neither input is set
+- **workflow_run**: processes only the files converted in the triggering conversion
+  workflow run
+
 Optional environment toggles:
 
 | Variable | Default |
@@ -180,6 +193,22 @@ Place supporting documents in the `assets/` folder to enable comparative analysi
 Supported formats: `.md`, `.txt`, `.json`, `.yaml`, `.yml`, `.pdf`, `.docx`
 
 Assets that cannot be parsed are flagged in the Reference Document Status section of the analysis file with a plain-language note rather than a silent failure.
+
+---
+
+## Contributing or extending
+
+Agent prompts are in `prompts/`. To change how the pipeline analyzes contracts — for example to add a new clause category, adjust risk scoring criteria, or tune the executive summary format — edit the relevant prompt file and push. The workflow picks up prompt changes automatically on the next run.
+
+To extend the pipeline with a new document type or output file, the Python source is in `src/pdf_multi_agent_analysis/`. The `pipeline.py` file controls agent sequencing and output file generation. The `agents.py` file defines individual agent behavior.
+
+---
+
+## Known limitations
+
+- **Scanned PDFs with heavy OCR artifacts**: Reference asset PDFs that were scanned rather than born-digital may produce degraded extracted text even after the OCR cleanup pass. The pipeline will flag these in the Reference Document Status section rather than silently injecting low-quality context, but the analysis will not reflect their contents. Replace scanned assets with text-based PDFs where possible.
+
+- **Large contracts**: Contracts over approximately 40 pages will produce a large analysis file due to chunk volume. The section grouping and deduplication logic reduces this significantly, but very long contracts with many subsections may still produce lengthy output. The executive summary and scorecard files remain concise regardless of contract length and are the recommended starting point for long documents.
 
 ---
 
