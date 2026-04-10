@@ -138,10 +138,78 @@ def test_sectioned_report_dedupes_legal_risks_and_preserves_section_guidance() -
     assert report.count("- termination requires 30 days notice.") == 0
     assert report.count("- Cap liability for indirect damages.") == 2
     assert report.count("- Propose a mutual indemnity framework.") == 2
-    assert report.lower().count("reference assets are available") == 1
+    assert report.lower().count("reference assets are available") == 0
     assert "- Confidentiality duties appear linked to use limitations." in report
     assert "- Confidentiality obligations are present but scope and carve-outs should be tightened." in report
     assert "- Negotiate a materiality qualifier for breach triggers." in report
+
+
+def test_sectioned_report_suppresses_reference_assets_boilerplate_in_all_sections() -> None:
+    section_order = ["Definitions and Interpretation", "Section B"]
+    section_buckets = {
+        "Definitions and Interpretation": {
+            "legal_risks": ["Clause imposes broad disclosure obligations."],
+            "takeaways": [
+                "Reference assets are loaded, supporting a redline plan aligned to internal standards.",
+                "Narrow disclosure triggers to objective criteria.",
+            ],
+            "actions": ["Request explicit approval workflow for third-party sharing."],
+        },
+        "Section B": {
+            "legal_risks": ["Clause has unilateral injunctive remedy language."],
+            "takeaways": [
+                "Assets are available and support a redline strategy anchored to internal standards.",
+                "Clarify carve-outs for compelled disclosures.",
+            ],
+            "actions": ["Add cure period language before termination."],
+        },
+    }
+
+    report = _build_sectioned_analysis_report(
+        report_title="Sample",
+        chunk_count=2,
+        section_order=section_order,
+        section_buckets=section_buckets,
+        assets_context="",
+        asset_statuses=[],
+    )
+
+    assert "Reference assets are loaded" not in report
+    assert "Assets are available and support a redline strategy" not in report
+    assert "- Narrow disclosure triggers to objective criteria." in report
+    assert "- Clarify carve-outs for compelled disclosures." in report
+
+
+def test_sectioned_report_dedupes_legal_risk_fragments_and_keeps_complete_clause() -> None:
+    section_order = ["Termination", "Limitation of Liability and Indemnification"]
+    section_buckets = {
+        "Termination": {
+            "legal_risks": [
+                "he provisions of this Agreement except portions that are inapplicable to such continuing services shall survive the termination of this Agreement.",
+            ],
+            "takeaways": ["Add mutual survival carve-outs for operational transitions."],
+            "actions": ["Confirm sunset periods for surviving obligations."],
+        },
+        "Limitation of Liability and Indemnification": {
+            "legal_risks": [
+                "The provisions of this Agreement except portions that are inapplicable to such continuing services shall survive the termination of this Agreement.",
+            ],
+            "takeaways": ["Align survival language with liability caps."],
+            "actions": ["Ensure indemnity obligations do not survive indefinitely."],
+        },
+    }
+
+    report = _build_sectioned_analysis_report(
+        report_title="Sample",
+        chunk_count=2,
+        section_order=section_order,
+        section_buckets=section_buckets,
+        assets_context="",
+        asset_statuses=[],
+    )
+
+    assert report.count("- The provisions of this Agreement except portions that are inapplicable to such continuing services shall survive the termination of this Agreement.") == 1
+    assert "- he provisions of this Agreement except portions that are inapplicable to such continuing services shall survive the termination of this Agreement." not in report
 
 
 def test_reference_document_status_is_last_section() -> None:
@@ -208,6 +276,13 @@ def test_find_heading_candidate_rejects_stage_and_subsection_labels() -> None:
     assert _find_heading_candidate("Detected section heading: 7.3 SS&C represents and warrants to Fund that") is None
     assert _find_heading_candidate("Detected section heading: 2. Services and Fees") == "2. Services and Fees"
     assert _find_heading_candidate("Detected section heading: Termination") == "Termination"
+    assert (
+        _find_heading_candidate(
+            "Detected section heading: 5. Termination 5.1. A Party also may, by written notice to the other Party, terminate this Agreement if any of the following events occur"
+        )
+        is None
+    )
+    assert _find_heading_candidate("Detected section heading: 5. Maintain books and records with respect to the Services.") is None
 
 
 def test_analyze_markdown_defaults_first_section_and_reuses_latest_valid_section(monkeypatch) -> None:

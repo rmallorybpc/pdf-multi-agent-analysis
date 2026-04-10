@@ -75,6 +75,33 @@ KNOWN_CONTRACT_SECTION_HEADINGS: tuple[str, ...] = (
     "Miscellaneous",
 )
 
+KNOWN_COMPLETE_LEADING_WORDS: set[str] = {
+    "a",
+    "an",
+    "and",
+    "as",
+    "at",
+    "be",
+    "by",
+    "for",
+    "from",
+    "if",
+    "in",
+    "is",
+    "it",
+    "may",
+    "must",
+    "of",
+    "on",
+    "or",
+    "shall",
+    "the",
+    "to",
+    "with",
+    "without",
+    "will",
+}
+
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
@@ -109,10 +136,70 @@ def _is_reference_assets_boilerplate(text: str) -> bool:
     if not canonical:
         return False
 
-    has_reference_assets = bool(re.search(r"\breference\s+assets?\b", canonical))
-    has_redline_strategy = bool(re.search(r"\bredline\w*\s+(strategy|approach|plan)\b", canonical))
+    has_reference_assets = bool(
+        re.search(r"\b(reference\s+assets?|assets?)\b", canonical)
+        and re.search(r"\b(available|loaded|load|provided|included|attached|supplied|present)\b", canonical)
+    )
+    has_redline_strategy = bool(
+        re.search(r"\bredline\w*\b", canonical)
+        and re.search(r"\b(strategy|strategic|approach|plan|playbook|method)\b", canonical)
+    )
     has_internal_standards = bool(re.search(r"\binternal\s+(standard|standards|baseline|playbook|templates?)\b", canonical))
     return has_reference_assets and has_redline_strategy and has_internal_standards
+
+
+def _strip_numbered_heading_prefix(text: str) -> str:
+    stripped = text.strip()
+    return re.sub(r"^\d+\.\s*", "", stripped).strip()
+
+
+def _looks_like_known_heading_vocabulary(text: str) -> bool:
+    base = _strip_numbered_heading_prefix(text).lower()
+    return any(base == heading.lower() for heading in KNOWN_CONTRACT_SECTION_HEADINGS)
+
+
+def _contains_action_verb(text: str) -> bool:
+    lowered = _strip_numbered_heading_prefix(text).lower()
+    return bool(
+        re.search(
+            r"\b(?:maintain(?:s|ed|ing)?|provide(?:s|d|ing)?|terminate(?:s|d|ing)?|perform(?:s|ed|ing)?|deliver(?:s|ed|ing)?|execute(?:s|d|ing)?|shall|may|agree(?:s|d|ing)?)\b",
+            lowered,
+        )
+    )
+
+
+def _strip_leading_partial_word(text: str) -> str:
+    stripped = text.strip()
+    match = re.match(r"^([a-z]{1,3})\s+(.+)$", stripped)
+    if not match:
+        return stripped
+    leading = match.group(1)
+    if leading in KNOWN_COMPLETE_LEADING_WORDS:
+        return stripped
+    return match.group(2).strip()
+
+
+def _canonicalize_legal_risk_text(text: str) -> str:
+    stripped = _normalize_bullet_text(text)
+    if not stripped:
+        return ""
+    lowered = _strip_leading_partial_word(stripped).strip().lower()
+    lowered = re.sub(r"^(?:the|a|an)\s+", "", lowered)
+    return re.sub(r"\s+", " ", lowered)
+
+
+def _is_more_complete_legal_risk(candidate: str, existing: str) -> bool:
+    candidate_clean = _normalize_bullet_text(candidate)
+    existing_clean = _normalize_bullet_text(existing)
+    if len(candidate_clean) != len(existing_clean):
+        return len(candidate_clean) > len(existing_clean)
+
+    candidate_has_partial_prefix = _strip_leading_partial_word(candidate_clean) != candidate_clean
+    existing_has_partial_prefix = _strip_leading_partial_word(existing_clean) != existing_clean
+    if candidate_has_partial_prefix != existing_has_partial_prefix:
+        return not candidate_has_partial_prefix
+
+    return candidate_clean < existing_clean
 
 
 def _are_near_duplicate_bullets(existing: str, candidate: str) -> bool:
@@ -307,6 +394,13 @@ def _clean_heading_candidate(text: str | None) -> str | None:
     if not heading or _is_pipeline_stage_label(heading):
         return None
 
+    # Apply promotion rejection rules before any heading promotion logic.
+    if len(heading.split()) > 15:
+        return None
+
+    if not _looks_like_known_heading_vocabulary(heading) and _contains_action_verb(heading):
+        return None
+
     numbered_match = re.match(r"^(\d+)\.\s+([A-Z][^\n]{1,200})$", heading)
     if numbered_match:
         return f"{numbered_match.group(1)}. {numbered_match.group(2).strip()}"
@@ -421,8 +515,7 @@ def _build_sectioned_analysis_report(
     lines.append(f"- Chunks processed: {chunk_count}. Sections detected: {len(section_order)}.")
     lines.append("")
 
-    seen_legal_risks_global: set[str] = set()
-    seen_reference_assets_takeaways_global: list[str] = []
+    legal_risk_index_by_key: dict[str, tuple[str, int]] = {}
     deduped_by_section: dict[str, dict[str, list[str]]] = {}
 
     for section_name in section_order:
@@ -430,22 +523,26 @@ def _build_sectioned_analysis_report(
         deduped_legal_risks: list[str] = []
         deduped_takeaways: list[str] = []
         deduped_actions: list[str] = []
-        seen_legal_risks_section: set[str] = set()
         seen_takeaways_section: set[str] = set()
         seen_actions_section: set[str] = set()
 
         for risk in bucket["legal_risks"]:
             normalized = _normalize_bullet_text(risk)
-            key = _canonicalize_exact_clause_text(normalized)
+            key = _canonicalize_legal_risk_text(normalized)
             if not normalized or not key:
                 continue
-            if key in seen_legal_risks_section:
+            existing_location = legal_risk_index_by_key.get(key)
+            if existing_location is None:
+                legal_risk_index_by_key[key] = (section_name, len(deduped_legal_risks))
+                deduped_legal_risks.append(normalized)
                 continue
-            if key in seen_legal_risks_global:
+
+            existing_section, existing_index = existing_location
+            existing_text = deduped_by_section.get(existing_section, {}).get("legal_risks", [])
+            if existing_index >= len(existing_text):
                 continue
-            seen_legal_risks_section.add(key)
-            seen_legal_risks_global.add(key)
-            deduped_legal_risks.append(normalized)
+            if _is_more_complete_legal_risk(normalized, existing_text[existing_index]):
+                deduped_by_section[existing_section]["legal_risks"][existing_index] = normalized
 
         for takeaway in bucket["takeaways"]:
             _append_unique_bullet(deduped_takeaways, seen_takeaways_section, takeaway)
@@ -482,12 +579,7 @@ def _build_sectioned_analysis_report(
             if any(_are_near_duplicate_bullets(existing, normalized) for existing in section_takeaways):
                 continue
             if _is_reference_assets_boilerplate(normalized):
-                if any(
-                    _are_near_duplicate_bullets(existing, normalized)
-                    for existing in seen_reference_assets_takeaways_global
-                ):
-                    continue
-                seen_reference_assets_takeaways_global.append(normalized)
+                continue
             section_takeaways.append(normalized)
         if section_takeaways:
             lines.append("### Strategic Takeaways")

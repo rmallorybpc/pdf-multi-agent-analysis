@@ -1,12 +1,22 @@
----
-title: "input.md"
-source: "input.md"
-last_run: "2026-04-10T14:39:32Z"
----
-
-# Final Synthesized Output: input.md
+# Chunk Diagnostics: input.md
 
 ## Chunk 1
+### Section assignment
+Definitions and Interpretation
+
+### extractor
+# Section
+Simple body text.
+
+Detected section heading: Section
+
+### reviewer
+Chunk is short; context may be incomplete.
+
+### analyst
+Word count: 5; unique terms: 5.
+
+### synthesizer
 Summary preview: # Section Simple body text.
 
 Section heading candidate: Section
