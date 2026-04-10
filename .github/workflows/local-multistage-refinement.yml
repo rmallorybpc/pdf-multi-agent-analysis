@@ -65,8 +65,33 @@ jobs:
             else
               find rfp-markdown -type f -name '*.md' ! -path 'rfp-markdown/generated/*' ! -path 'rfp-markdown/audit/*' | sort >> .tmp/targets.txt
             fi
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            # On push, process only source markdown files changed in the triggering push.
+            before="${{ github.event.before }}"
+            after="${{ github.sha }}"
+
+            if [[ "$before" =~ ^0+$ ]]; then
+              git show --pretty='' --name-status "$after" > .tmp/diff.txt || true
+            else
+              git diff --name-status "$before" "$after" > .tmp/diff.txt || true
+            fi
+
+            while IFS=$'\t' read -r status path target_path; do
+              [[ -z "${status:-}" ]] && continue
+              [[ "$status" == D ]] && continue
+
+              if [[ "$status" == R* ]]; then
+                path="$target_path"
+              fi
+
+              if [[ "$path" =~ ^rfp-markdown/.+\.md$ ]] && \
+                 [[ ! "$path" =~ ^rfp-markdown/generated/ ]] && \
+                 [[ ! "$path" =~ ^rfp-markdown/audit/ ]]; then
+                echo "$path"
+              fi
+            done < .tmp/diff.txt | sort -u >> .tmp/targets.txt || true
           else
-            # On push, re-run all source markdown files so existing outputs stay in sync.
+            # On workflow_run, re-run all source markdown files so outputs stay in sync.
             find rfp-markdown -type f -name '*.md' ! -path 'rfp-markdown/generated/*' ! -path 'rfp-markdown/audit/*' | sort >> .tmp/targets.txt
           fi
 
