@@ -38,7 +38,6 @@
 ### Strategic Takeaways
 - Confidentiality duties appear linked to use limitations, so operational handling controls should be aligned with stated purpose restrictions.
 - Term and survival language can shift long-tail exposure; negotiation should confirm exactly which obligations survive and for how long.
-- Reference assets are available, enabling a redline strategy anchored to internal standards rather than ad hoc clause-by-clause edits.
 - Confidentiality obligations are present, but scope and carve-outs should be tightened to reduce interpretation risk.
 - Public disclosure language may conflict with transaction secrecy goals; align announcement rights with communications governance.
 - Remedies appear asymmetrical or high-impact, creating leverage points around liability caps, indemnity triggers, and equitable relief scope.

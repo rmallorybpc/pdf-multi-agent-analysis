@@ -3,7 +3,7 @@
 - Contract type: Non-disclosure agreement
 - Parties involved: the parties regarding the Opportunity, provided, however, that, to the extent practicable, a Party that intends to make such a public announcement shall discuss any such proposed announcement with the other Party prior to making such announcement
 - Effective date: Not stated
-- Analysis run date: 2026-04-08
+- Analysis run date: 2026-04-10
 
 ## What This Contract Does
 This agreement sets rules for sharing and handling sensitive business information between the parties.
