@@ -1,13 +1,13 @@
 ---
 title: "SS&C Services Agreement from 2024 v2-final.md"
 source: "SS&C Services Agreement from 2024 v2-final.md"
-last_run: "2026-04-10T14:45:34Z"
+last_run: "2026-04-10T15:08:41Z"
 ---
 
 # Final Synthesized Output: SS&C Services Agreement from 2024 v2-final.md
 
 ## Chunk 1
-Summary preview: --- last_run: "2026-04-10T14:45:21Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "SS&C Services Agreement from 2024 v2" - source_path: "rfp-pdfs/SS&C Services Agreement from 2024 v2.pdf" - page_count: 40 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "SS&C Services...
+Summary preview: --- last_run: "2026-04-10T15:08:27Z" --- ## Stage C Final Markdown ## Stage B Executive Refinement ### Executive Summary - ## Stage A Critique - - Local deterministic review - - Flags TODO/TBD/FIXME markers - --- - title: "SS&C Services Agreement from 2024 v2" - source_path: "rfp-pdfs/SS&C Services Agreement from 2024 v2.pdf" - page_count: 40 - extraction_method: "ocr" ### Refined Body ## Stage A Critique - Local deterministic review - Flags TODO/TBD/FIXME markers --- title: "SS&C Services...
 
 Section heading candidate: Stage C Final Markdown
 
