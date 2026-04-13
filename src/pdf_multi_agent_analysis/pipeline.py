@@ -17,7 +17,16 @@ AUDIT_ROOT_DIR = Path("rfp-markdown/audit")
 SCORECARD_CATEGORIES: list[tuple[str, tuple[str, ...], tuple[str, ...]]] = [
     (
         "Confidentiality obligations",
-        ("confidential", "proprietary", "non-disclosure", "nondisclosure", "trade secret"),
+        (
+            "confidential",
+            "confidentiality",
+            "confidential information",
+            "proprietary",
+            "proprietary information",
+            "non-disclosure",
+            "nondisclosure",
+            "trade secret",
+        ),
         ("breach", "disclose", "unauthorized", "injunct", "damages"),
     ),
     (
