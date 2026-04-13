@@ -91,9 +91,14 @@ jobs:
               fi
             done < .tmp/diff.txt | sort -u >> .tmp/targets.txt || true
           elif [[ "${{ github.event_name }}" == "workflow_run" ]]; then
-            # For chained runs, inspect the conversion workflow's head commit.
+            # For chained runs, compare the original trigger SHA to current HEAD.
+            # The conversion workflow may create a follow-up commit with markdown updates.
             head_sha="${{ github.event.workflow_run.head_sha }}"
-            git show --pretty='' --name-status "$head_sha" > .tmp/diff.txt || true
+            if [[ -n "$head_sha" ]]; then
+              git diff --name-status "$head_sha" HEAD > .tmp/diff.txt || true
+            else
+              git show --pretty='' --name-status HEAD > .tmp/diff.txt || true
+            fi
 
             while IFS=$'\t' read -r status path target_path; do
               [[ -z "${status:-}" ]] && continue
