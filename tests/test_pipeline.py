@@ -2,7 +2,15 @@ from pathlib import Path
 
 from pdf_multi_agent_analysis.config import PipelineConfig
 from pdf_multi_agent_analysis import pipeline as pipeline_module
-from pdf_multi_agent_analysis.pipeline import _analyze_markdown, _build_sectioned_analysis_report, _find_heading_candidate, run_markdown_analysis
+from pdf_multi_agent_analysis.pipeline import (
+    _analyze_markdown,
+    _build_executive_summary,
+    _build_scorecard,
+    _build_sectioned_analysis_report,
+    _extract_contract_metadata,
+    _find_heading_candidate,
+    run_markdown_analysis,
+)
 
 
 def test_run_markdown_analysis_with_assets(tmp_path: Path) -> None:
@@ -349,3 +357,96 @@ def test_analyze_markdown_defaults_first_section_and_reuses_latest_valid_section
     assert "Stage C Final Markdown" not in report
     assert "Stage B Executive Refinement" not in report
     assert analysis["section_count"] == 1
+
+
+def test_scorecard_distinguishes_standard_language_and_missing_categories() -> None:
+    analysis_report = """
+# Analysis Report: short-mutual-nda.md
+
+## 1. Confidentiality
+- Each party shall keep Confidential Information confidential and use no less than reasonable care.
+- Confidential Information shall not include information already public or required by law.
+
+## 2. Use Restriction
+- Receiving Party shall use Proprietary Information solely to evaluate a potential transaction.
+
+## Reference Assets
+- Some external text that should not be scored.
+""".strip()
+
+    issues_report = """
+# Contract Issues Summary: short-mutual-nda.md
+
+- Receiving Party shall use Proprietary Information solely to evaluate a potential transaction.
+""".strip()
+
+    scorecard, overall_rating, not_found_categories, score_rows = _build_scorecard(analysis_report, issues_report)
+
+    by_category = {row["category"]: row for row in score_rows}
+    assert by_category["Confidentiality obligations"]["risk"] == "LOW"
+    assert by_category["Liability and indemnification"]["risk"] == "NOT FOUND"
+    assert by_category["Data protection and security"]["risk"] == "NOT FOUND"
+    assert "Liability and indemnification" in not_found_categories
+    assert overall_rating in ("LOW", "MEDIUM")
+    assert "Reference Assets" not in scorecard
+
+
+def test_extract_contract_metadata_parties_falls_back_when_clause_text_detected() -> None:
+    analysis_report = """
+# Analysis Report: noisy-nda.md
+
+## 1. Definitions
+- Proprietary Information includes terms and conditions and the existence, context, and scope of this Agreement between the parties and their representatives.
+""".strip()
+
+    _name, _type, parties, _effective_date = _extract_contract_metadata("noisy-nda.md", analysis_report)
+    assert parties == "See contract preamble"
+
+
+def test_executive_summary_nda_description_is_contract_specific() -> None:
+    analysis_report = """
+# Analysis Report: targeted-nda.md
+
+## 1. Preamble
+- This Mutual Nondisclosure Agreement is between Acme Corporation and Beta LLC.
+- The parties agree to exchange confidential information for the purpose of evaluating a strategic partnership.
+
+## 2. Term
+- Except as otherwise provided, confidentiality obligations terminate on the second anniversary of the Effective Date.
+
+## 3. Remedies
+- The non-breaching party may seek immediate injunctive relief for threatened disclosure.
+
+## 4. No Solicitation
+- A non-solicitation covenant applies during the evaluation period.
+""".strip()
+
+    scorecard = """
+Overall contract risk rating: MEDIUM
+
+| Category | Risk Rating | Confidence | Rationale |
+| --- | --- | --- | --- |
+| Confidentiality obligations | MEDIUM | MEDIUM | sample |
+""".strip()
+    score_rows = [
+        {
+            "category": "Confidentiality obligations",
+            "risk": "MEDIUM",
+            "confidence": "MEDIUM",
+            "rationale": "sample",
+        }
+    ]
+
+    summary = _build_executive_summary(
+        report_title="targeted-nda.md",
+        analysis_report=analysis_report,
+        scorecard=scorecard,
+        overall_rating="MEDIUM",
+        score_rows=score_rows,
+    )
+
+    assert "mutual nda" in summary.lower()
+    assert "stated purpose:" in summary.lower()
+    assert "confidentiality duration signal:" in summary.lower()
+    assert "injunctive relief" in summary.lower()
+    assert "non-solicitation" in summary.lower()

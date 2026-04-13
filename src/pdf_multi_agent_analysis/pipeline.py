@@ -49,6 +49,66 @@ SCORECARD_CATEGORIES: list[tuple[str, tuple[str, ...], tuple[str, ...]]] = [
 
 RISK_ORDER = {"HIGH": 3, "MEDIUM": 2, "LOW": 1, "NOT FOUND": 0}
 
+MUTUAL_PROTECTIVE_TERMS: tuple[str, ...] = (
+    "mutual",
+    "each party",
+    "both parties",
+    "reasonable care",
+    "commercially reasonable",
+    "except as required by law",
+    "confidential information shall not include",
+)
+
+ONE_SIDED_TERMS: tuple[str, ...] = (
+    "sole discretion",
+    "solely by",
+    "unilateral",
+    "exclusive remedy",
+    "receiving party shall",
+)
+
+GAP_TERMS: tuple[str, ...] = (
+    "missing",
+    "not stated",
+    "not specified",
+    "silent",
+    "unclear",
+    "not provided",
+)
+
+CATEGORY_PROTECTIVE_TERMS: dict[str, tuple[str, ...]] = {
+    "Confidentiality obligations": (
+        "no less than reasonable care",
+        "confidential information shall not include",
+        "required by applicable law",
+    ),
+    "Liability and indemnification": (
+        "no liability",
+        "limited liability",
+        "except for",
+    ),
+    "Termination rights": (
+        "for material breach",
+        "written notice",
+        "cure period",
+    ),
+    "Intellectual property": (
+        "remains the property",
+        "no license",
+        "sole property",
+    ),
+    "Jurisdiction and governing law": (
+        "non-exclusive",
+        "mutual consent",
+        "good faith",
+    ),
+    "Data protection and security": (
+        "reasonable safeguards",
+        "industry standard",
+        "security measures",
+    ),
+}
+
 DEFAULT_FIRST_SECTION_HEADING = "Definitions and Interpretation"
 
 PIPELINE_STAGE_LABELS: tuple[str, ...] = (
@@ -643,6 +703,128 @@ def _extract_sentences(text: str) -> list[str]:
     return [s.strip() for s in re.split(r"(?<=[.!?;])\s+", normalized) if s.strip()]
 
 
+def _strip_reference_sections(report: str) -> str:
+    marker_positions = [
+        idx
+        for idx in (
+            report.find("\n## Reference Assets"),
+            report.find("\n## Reference Document Status"),
+        )
+        if idx != -1
+    ]
+    if not marker_positions:
+        return report
+    return report[: min(marker_positions)].strip()
+
+
+def _contains_term(text: str, term: str) -> bool:
+    pattern = r"\b" + re.escape(term.lower()) + r"\b"
+    return re.search(pattern, text.lower()) is not None
+
+
+def _contains_any_term(text: str, terms: tuple[str, ...]) -> bool:
+    return any(_contains_term(text, term) for term in terms)
+
+
+def _clean_party_candidate(candidate: str) -> str:
+    cleaned = re.sub(r"\([^)]*\)", "", candidate)
+    cleaned = cleaned.strip(" ,;:-\"'")
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned
+
+
+def _is_confident_party_name(candidate: str) -> bool:
+    cleaned = _clean_party_candidate(candidate)
+    if not cleaned:
+        return False
+    if len(cleaned.split()) > 10:
+        return False
+    if len(cleaned) > 90:
+        return False
+    lowered = cleaned.lower()
+    if any(token in lowered for token in ("proprietary information", "terms and conditions", "agreement shall", "representatives")):
+        return False
+    return bool(re.search(r"[A-Za-z]", cleaned))
+
+
+def _extract_parties_from_text(full_text: str) -> str:
+    between_patterns = (
+        r"\bbetween\s+(.{2,120}?)\s+and\s+(.{2,120}?)(?:,|\.|\sas\sof\b|\sdated\b|\sfor\sthe\spurpose\b)",
+        r"\bby\s+and\s+between\s+(.{2,120}?)\s+and\s+(.{2,120}?)(?:,|\.|\sas\sof\b|\sdated\b)",
+    )
+    for pattern in between_patterns:
+        match = re.search(pattern, full_text, flags=re.IGNORECASE)
+        if not match:
+            continue
+        first = _clean_party_candidate(match.group(1))
+        second = _clean_party_candidate(match.group(2))
+        if _is_confident_party_name(first) and _is_confident_party_name(second):
+            return f"{first} and {second}"
+
+    signature_match = re.search(
+        r"(?:IN WITNESS WHEREOF|By:)\s+(.{2,80}?)\s+(?:By:|Name:)\s+(.{2,80}?)(?:\s+Title:\s+.{2,80})?",
+        full_text,
+        flags=re.IGNORECASE,
+    )
+    if signature_match:
+        entity = _clean_party_candidate(signature_match.group(1))
+        signatory = _clean_party_candidate(signature_match.group(2))
+        if _is_confident_party_name(entity) and _is_confident_party_name(signatory):
+            return f"{entity} (signatory: {signatory})"
+
+    return "See contract preamble"
+
+
+def _build_contract_description(contract_type: str, analysis_report: str) -> list[str]:
+    text = _strip_reference_sections(analysis_report)
+    lowered = text.lower()
+
+    if contract_type != "Non-disclosure agreement":
+        return [
+            "This agreement defines the parties' core rights, obligations, and enforcement mechanics for the stated commercial relationship.",
+            "Key sections should be reviewed against internal standards before execution.",
+        ]
+
+    if _contains_any_term(lowered, ("mutual non-disclosure", "mutual nondisclosure", "each party shall")):
+        nda_type = "This appears to be a mutual NDA with obligations on both sides."
+    elif _contains_any_term(lowered, ("disclosing party", "receiving party")):
+        nda_type = "This appears to be a one-way NDA with primary restrictions on the receiving party."
+    else:
+        nda_type = "This NDA's directionality is not explicit in the extracted text."
+
+    purpose = "Purpose of disclosure is not clearly stated in extracted text."
+    purpose_match = re.search(
+        r"(?:for the purpose of|to evaluate|in connection with)\s+(.{8,180}?)(?:\.|;)",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if purpose_match:
+        purpose_text = _normalize_bullet_text(purpose_match.group(1))
+        purpose = f"Stated purpose: {purpose_text}."
+
+    term = "Confidentiality period is not clearly stated."
+    term_match = re.search(
+        r"(?:for a period of\s+[^.;]{3,80}|terminate on the\s+[^.;]{3,80}|survive[^.;]{0,80})",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if term_match:
+        term = f"Confidentiality duration signal: {_normalize_bullet_text(term_match.group(0))}."
+
+    notable_items: list[str] = []
+    if _contains_any_term(lowered, ("standstill",)):
+        notable_items.append("standstill")
+    if _contains_any_term(lowered, ("non-solicitation", "no solicitation", "no-solicitation")):
+        notable_items.append("non-solicitation")
+    if _contains_any_term(lowered, ("injunctive", "equitable relief", "immediate injunction")):
+        notable_items.append("injunctive relief")
+    notable = "Notable provisions: none clearly distinguished from a baseline template."
+    if notable_items:
+        notable = "Notable provisions: " + ", ".join(notable_items) + "."
+
+    return [nda_type, purpose, term, notable]
+
+
 def _score_issue_line(line: str) -> int:
     lowered = line.lower()
     score = 0
@@ -683,7 +865,8 @@ def _collect_issue_lines(issues_report: str) -> list[str]:
 
 
 def _build_scorecard(analysis_report: str, issues_report: str) -> tuple[str, str, list[str], list[dict[str, str]]]:
-    full_text = f"{analysis_report}\n{issues_report}"
+    core_analysis = _strip_reference_sections(analysis_report)
+    full_text = f"{core_analysis}\n{issues_report}"
     sentences = _extract_sentences(full_text)
     score_rows: list[dict[str, str]] = []
 
@@ -691,7 +874,7 @@ def _build_scorecard(analysis_report: str, issues_report: str) -> tuple[str, str
         matching_sentences = [
             sentence
             for sentence in sentences
-            if any(term in sentence.lower() for term in primary_terms)
+            if _contains_any_term(sentence, primary_terms)
         ]
         if not matching_sentences:
             score_rows.append(
@@ -708,14 +891,24 @@ def _build_scorecard(analysis_report: str, issues_report: str) -> tuple[str, str
         elevated_hits = sum(
             1
             for sentence in matching_sentences
-            if any(term in sentence.lower() for term in elevated_terms)
+            if _contains_any_term(sentence, elevated_terms)
         )
-        if elevated_hits >= 2 or sentence_hits >= 5:
+        protective_terms = CATEGORY_PROTECTIVE_TERMS.get(category, ())
+        protective_hits = sum(1 for sentence in matching_sentences if _contains_any_term(sentence, protective_terms))
+        mutual_hits = sum(1 for sentence in matching_sentences if _contains_any_term(sentence, MUTUAL_PROTECTIVE_TERMS))
+        one_sided_hits = sum(1 for sentence in matching_sentences if _contains_any_term(sentence, ONE_SIDED_TERMS))
+        gap_hits = sum(1 for sentence in matching_sentences if _contains_any_term(sentence, GAP_TERMS))
+
+        if elevated_hits >= 2 or (elevated_hits >= 1 and one_sided_hits >= 1):
             risk = "HIGH"
-        elif elevated_hits >= 1 or sentence_hits >= 2:
+        elif gap_hits >= 1 and elevated_hits == 0:
             risk = "MEDIUM"
-        else:
+        elif elevated_hits >= 1:
+            risk = "MEDIUM"
+        elif protective_hits >= 1 or mutual_hits >= 1:
             risk = "LOW"
+        else:
+            risk = "MEDIUM"
 
         if sentence_hits >= 4:
             confidence = "HIGH"
@@ -729,12 +922,19 @@ def _build_scorecard(analysis_report: str, issues_report: str) -> tuple[str, str
         if len(rationale_source) > 160:
             rationale_clean += "..."
 
+        if risk == "LOW":
+            rationale = f"Detected clause language appears standard or mutual; sample: {rationale_clean}"
+        elif gap_hits >= 1 and elevated_hits == 0:
+            rationale = f"Detected category language includes a protection gap or omission signal; sample: {rationale_clean}"
+        else:
+            rationale = f"Detected clause language indicates {risk.lower()} exposure; sample: {rationale_clean}"
+
         score_rows.append(
             {
                 "category": category,
                 "risk": risk,
                 "confidence": confidence,
-                "rationale": f"Detected clause language indicates {risk.lower()} exposure; sample: {rationale_clean}",
+                "rationale": rationale,
             }
         )
 
@@ -781,7 +981,8 @@ def _build_scorecard(analysis_report: str, issues_report: str) -> tuple[str, str
 
 def _extract_contract_metadata(report_title: str, analysis_report: str) -> tuple[str, str, str, str]:
     contract_name = Path(report_title).stem
-    full_text = re.sub(r"\s+", " ", analysis_report)
+    core_text = _strip_reference_sections(analysis_report)
+    full_text = re.sub(r"\s+", " ", core_text)
     lowered = full_text.lower()
 
     contract_type = "Commercial agreement"
@@ -792,10 +993,7 @@ def _extract_contract_metadata(report_title: str, analysis_report: str) -> tuple
     elif "purchase" in lowered:
         contract_type = "Purchase agreement"
 
-    parties = "Not clearly identified"
-    between_match = re.search(r"between\s+([^.;]+)", full_text, flags=re.IGNORECASE)
-    if between_match:
-        parties = between_match.group(1).strip()
+    parties = _extract_parties_from_text(full_text)
 
     effective_date = "Not stated"
     date_match = re.search(
@@ -830,6 +1028,7 @@ def _build_executive_summary(
     score_rows: list[dict[str, str]],
 ) -> str:
     contract_name, contract_type, parties, effective_date = _extract_contract_metadata(report_title, analysis_report)
+    contract_description = _build_contract_description(contract_type, analysis_report)
     run_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     not_found_categories = _not_found_categories_from_scorecard(scorecard)
 
@@ -845,6 +1044,11 @@ def _build_executive_summary(
     actions: list[str] = []
     for category in not_found_categories:
         actions.append(f"Add {category.lower()} clause; legal review required before signing.")
+    for row in score_rows:
+        if len(actions) >= 5:
+            break
+        if row["risk"] == "MEDIUM" and "gap" in row["rationale"].lower():
+            actions.append(f"Address {row['category'].lower()} protection gap before approval.")
     for row in high_or_medium:
         if len(actions) >= 5:
             break
@@ -867,9 +1071,7 @@ def _build_executive_summary(
         f"- Analysis run date: {run_date}",
         "",
         "## What This Contract Does",
-        "This agreement sets rules for sharing and handling sensitive business information between the parties.",
-        "It defines allowed use, restrictions, and consequences if obligations are not met.",
-        "It also sets practical terms that affect enforcement, exit options, and operational risk.",
+        *contract_description,
         "",
         "## Overall Risk Assessment",
         f"Overall contract risk is {overall_rating} based on the consolidated scorecard.",
