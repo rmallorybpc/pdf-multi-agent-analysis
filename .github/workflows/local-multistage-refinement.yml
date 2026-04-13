@@ -9,6 +9,11 @@ on:
       - prompts/**
       - src/**
       - .github/workflows/local-multistage-refinement.yml
+  workflow_run:
+    workflows:
+      - convert-rfp-pdf-to-markdown
+    types:
+      - completed
   workflow_dispatch:
     inputs:
       file_path:
@@ -70,6 +75,25 @@ jobs:
             else
               git diff --name-status "$before" "$after" > .tmp/diff.txt || true
             fi
+
+            while IFS=$'\t' read -r status path target_path; do
+              [[ -z "${status:-}" ]] && continue
+              [[ "$status" == D ]] && continue
+
+              if [[ "$status" == R* ]]; then
+                path="$target_path"
+              fi
+
+              if [[ "$path" =~ ^rfp-markdown/.+\.md$ ]] && \
+                 [[ ! "$path" =~ ^rfp-markdown/generated/ ]] && \
+                 [[ ! "$path" =~ ^rfp-markdown/audit/ ]]; then
+                echo "$path"
+              fi
+            done < .tmp/diff.txt | sort -u >> .tmp/targets.txt || true
+          elif [[ "${{ github.event_name }}" == "workflow_run" ]]; then
+            # For chained runs, inspect the conversion workflow's head commit.
+            head_sha="${{ github.event.workflow_run.head_sha }}"
+            git show --pretty='' --name-status "$head_sha" > .tmp/diff.txt || true
 
             while IFS=$'\t' read -r status path target_path; do
               [[ -z "${status:-}" ]] && continue
