@@ -9,11 +9,6 @@ on:
       - prompts/**
       - src/**
       - .github/workflows/local-multistage-refinement.yml
-  workflow_run:
-    workflows:
-      - convert-rfp-pdf-to-markdown
-    types:
-      - completed
   workflow_dispatch:
     inputs:
       file_path:
@@ -63,7 +58,7 @@ jobs:
             elif [[ -n "${{ inputs.uploads_glob }}" ]]; then
               compgen -G "${{ inputs.uploads_glob }}" >> .tmp/targets.txt || true
             else
-              find rfp-markdown -type f -name '*.md' ! -path 'rfp-markdown/generated/*' ! -path 'rfp-markdown/audit/*' | sort >> .tmp/targets.txt
+              echo "workflow_dispatch called without file_path or uploads_glob; no targets selected." >&2
             fi
           elif [[ "${{ github.event_name }}" == "push" ]]; then
             # On push, process only source markdown files changed in the triggering push.
@@ -90,9 +85,6 @@ jobs:
                 echo "$path"
               fi
             done < .tmp/diff.txt | sort -u >> .tmp/targets.txt || true
-          else
-            # On workflow_run, re-run all source markdown files so outputs stay in sync.
-            find rfp-markdown -type f -name '*.md' ! -path 'rfp-markdown/generated/*' ! -path 'rfp-markdown/audit/*' | sort >> .tmp/targets.txt
           fi
 
           sort -u .tmp/targets.txt -o .tmp/targets.txt || true
@@ -496,16 +488,35 @@ jobs:
             exit 1
           fi
 
+      - name: Prune generated outputs for missing source markdown
+        if: steps.prep.outputs.target_count != '0'
+        run: |
+          set -euo pipefail
+
+          shopt -s nullglob
+          for final_md in rfp-markdown/generated/*-final.md; do
+            stem="$(basename "$final_md" -final.md)"
+            src="rfp-markdown/${stem}.md"
+
+            if [[ ! -f "$src" ]]; then
+              rm -f \
+                "rfp-markdown/generated/${stem}-final.md" \
+                "rfp-markdown/generated/${stem}-final.analysis.md" \
+                "rfp-markdown/generated/${stem}-final.issues.md" \
+                "rfp-markdown/generated/${stem}-final.scorecard.md" \
+                "rfp-markdown/generated/${stem}-final.executive-summary.md"
+              echo "pruned generated set for missing source: $src"
+            fi
+          done
+
       - name: Commit generated outputs when changed
         if: steps.prep.outputs.target_count != '0'
         run: |
           set -euo pipefail
           RUN_DIR="${{ steps.prep.outputs.run_dir }}"
 
-          # Stage final markdown plus companion analysis outputs in one commit.
-          find rfp-markdown/generated -type f \
-            \( -name '*-final.md' -o -name '*-final.analysis.md' -o -name '*-final.issues.md' -o -name '*-final.scorecard.md' -o -name '*-final.executive-summary.md' \) \
-            -print0 | xargs -0 -r git add
+          # Stage all generated changes, including deletions from prune.
+          git add -A rfp-markdown/generated
 
           if git diff --cached --quiet -- rfp-markdown/generated; then
             echo "No generated markdown changes to commit."
