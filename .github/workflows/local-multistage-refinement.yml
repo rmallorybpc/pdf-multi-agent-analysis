@@ -538,17 +538,70 @@ jobs:
             fi
           done
 
+      - name: Snapshot generated outputs to LinkedIn archive
+        if: steps.prep.outputs.target_count != '0'
+        run: |
+          set -euo pipefail
+
+          RUN_TS="$(date -u +"%Y%m%dT%H%M%SZ")"
+          SNAPSHOT_DIR="linkedin-series-archive/${RUN_TS}-run-${{ github.run_id }}-attempt-${{ github.run_attempt }}"
+          mkdir -p "$SNAPSHOT_DIR"
+
+          copied=0
+          while IFS= read -r target; do
+            [[ -z "$target" ]] && continue
+            stem="$(basename "$target" .md)"
+
+            for suffix in \
+              "-final.md" \
+              "-final.analysis.md" \
+              "-final.issues.md" \
+              "-final.scorecard.md" \
+              "-final.executive-summary.md"; do
+              src="rfp-markdown/generated/${stem}${suffix}"
+              if [[ -f "$src" ]]; then
+                cp "$src" "$SNAPSHOT_DIR/"
+                copied=$((copied + 1))
+              fi
+            done
+          done < .tmp/targets.txt
+
+          if [[ "$copied" -eq 0 ]]; then
+            rmdir "$SNAPSHOT_DIR"
+            echo "No generated files copied to LinkedIn archive."
+            exit 0
+          fi
+
+          manifest="$SNAPSHOT_DIR/_snapshot-manifest.md"
+          {
+            echo "# LinkedIn snapshot manifest"
+            echo ""
+            echo "- created_utc: ${RUN_TS}"
+            echo "- workflow_run_id: ${{ github.run_id }}"
+            echo "- workflow_attempt: ${{ github.run_attempt }}"
+            echo "- copied_files: ${copied}"
+            echo ""
+            echo "## Targets"
+            while IFS= read -r target; do
+              [[ -z "$target" ]] && continue
+              echo "- ${target}"
+            done < .tmp/targets.txt
+          } > "$manifest"
+
+          echo "LinkedIn snapshot created at ${SNAPSHOT_DIR} with ${copied} files."
+
       - name: Commit generated outputs when changed
         if: steps.prep.outputs.target_count != '0'
         run: |
           set -euo pipefail
           RUN_DIR="${{ steps.prep.outputs.run_dir }}"
 
-          # Stage all generated changes, including deletions from prune.
+          # Stage generated outputs and immutable LinkedIn snapshots.
           git add -A rfp-markdown/generated
+          git add -A linkedin-series-archive
 
-          if git diff --cached --quiet -- rfp-markdown/generated; then
-            echo "No generated markdown changes to commit."
+          if git diff --cached --quiet -- rfp-markdown/generated linkedin-series-archive; then
+            echo "No generated markdown or LinkedIn archive changes to commit."
             exit 0
           fi
 
@@ -571,7 +624,7 @@ jobs:
               echo ''
               echo 'git checkout ${{ github.ref_name }}'
               echo 'git pull'
-              echo 'git add rfp-markdown/generated'
+              echo 'git add rfp-markdown/generated linkedin-series-archive'
               echo 'git commit -m "chore(refinement): update generated markdown outputs"'
               echo 'git push'
             } > "$manual"

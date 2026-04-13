@@ -18,6 +18,8 @@ For every contract processed, the pipeline produces five output files:
 | `*-final.scorecard.md` | Risk rating table (LOW / MEDIUM / HIGH / NOT FOUND) across six clause categories with confidence indicators | Leadership |
 | `*-final.executive-summary.md` | One-page brief with plain-language risk assessment and recommended actions before signing | Business leader |
 
+Each refinement run also snapshots those generated files into `linkedin-series-archive/` using a timestamped run folder so prior LinkedIn episode artifacts remain immutable.
+
 **See a sample output:** [SS&C Services Agreement — Executive Summary](rfp-markdown/generated/SS%26C%20Services%20Agreement%20from%202024-final.executive-summary.md)
 
 ---
@@ -66,6 +68,7 @@ rfp-pdfs/                   Input PDFs — drop contracts here
 rfp-markdown/               Converted markdown files
 rfp-markdown/generated/     Final analysis output files
 rfp-markdown/audit/         Per-run audit artifacts and diagnostics
+linkedin-series-archive/    Immutable timestamped snapshots of generated outputs per workflow run
 assets/                     Optional reference documents for comparative analysis
 src/                        Python analysis pipeline source
 .github/workflows/          Automation workflows
