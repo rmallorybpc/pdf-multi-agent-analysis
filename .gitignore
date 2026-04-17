@@ -8,6 +8,7 @@ npm-debug.log*
 site/
 docs/index.md
 docs/history.md
+docs/trends.md
 docs/contracts/index.md
 docs/contracts/*/
 

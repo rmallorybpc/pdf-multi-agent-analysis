@@ -23,5 +23,6 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Contracts: contracts/index.md
+  - Trends: trends.md
   - History: history.md
   - About: about.md

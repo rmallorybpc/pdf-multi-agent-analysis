@@ -18,6 +18,14 @@ EXPECTED_SUFFIXES = {
     "executive": "-final.executive-summary.md",
 }
 
+RISK_ORDER = {
+    "HIGH": 4,
+    "MEDIUM": 3,
+    "LOW": 2,
+    "NOT FOUND": 1,
+    "UNKNOWN": 0,
+}
+
 
 @dataclass
 class ContractRecord:
@@ -122,6 +130,27 @@ def parse_created_utc_sort_key(raw: str) -> datetime:
         return datetime.min
 
 
+def parse_iso_datetime(raw: str) -> datetime | None:
+    if not raw:
+        return None
+    normalized = raw.strip()
+    if normalized.endswith("Z"):
+        normalized = normalized[:-1] + "+00:00"
+    try:
+        return datetime.fromisoformat(normalized)
+    except ValueError:
+        return None
+
+
+def to_date_only(raw: str) -> str:
+    parsed = parse_iso_datetime(raw)
+    if parsed:
+        return parsed.date().isoformat()
+    if len(raw) >= 10 and raw[4] == "-" and raw[7] == "-":
+        return raw[:10]
+    return ""
+
+
 def build_blob_url(repo_url: str, relative_path: Path) -> str:
     if not repo_url:
         return ""
@@ -181,7 +210,14 @@ def discover_contracts(generated_root: Path, runs: list[RunRecord]) -> list[Cont
             )
         )
 
-    contracts.sort(key=lambda c: (c.last_run, c.stem), reverse=True)
+    contracts.sort(
+        key=lambda c: (
+            parse_iso_datetime(c.last_run) or datetime.min,
+            RISK_ORDER.get(c.latest_risk, 0),
+            c.stem.lower(),
+        ),
+        reverse=True,
+    )
     return contracts
 
 
@@ -206,17 +242,31 @@ def build_home_page(contracts: list[ContractRecord], runs: list[RunRecord]) -> s
     latest_contract = contracts[0] if contracts else None
     latest_run = runs[0] if runs else None
     complete_count = sum(1 for c in contracts if c.completeness == "complete")
+    risk_counts = {"HIGH": 0, "MEDIUM": 0, "LOW": 0, "NOT FOUND": 0, "UNKNOWN": 0}
+    for contract in contracts:
+        risk_counts[contract.latest_risk] = risk_counts.get(contract.latest_risk, 0) + 1
+
+    avg_runs = round(sum(c.run_count for c in contracts) / len(contracts), 2) if contracts else 0.0
+    high_risk_pct = round((risk_counts.get("HIGH", 0) / len(contracts)) * 100, 1) if contracts else 0.0
+    completeness_pct = round((complete_count / len(contracts)) * 100, 1) if contracts else 0.0
+    latest_targets = len(latest_run.targets) if latest_run else 0
 
     lines = [
         "# Contract Analysis Transparency Portal",
         "",
         "This site publishes generated analysis outputs and immutable run history from the repository.",
         "",
-        "## Quick Stats",
+        "## KPI Snapshot",
         "",
         f"- Contracts indexed: {len(contracts)}",
+        f"- High risk contracts: {risk_counts.get('HIGH', 0)} ({high_risk_pct}%)",
+        f"- Medium risk contracts: {risk_counts.get('MEDIUM', 0)}",
+        f"- Low risk contracts: {risk_counts.get('LOW', 0)}",
+        f"- Not found risk contracts: {risk_counts.get('NOT FOUND', 0)}",
         f"- Complete artifact sets: {complete_count}",
+        f"- Artifact completeness rate: {completeness_pct}%",
         f"- Total archived runs: {len(runs)}",
+        f"- Average runs per contract: {avg_runs}",
     ]
 
     if latest_run:
@@ -229,6 +279,7 @@ def build_home_page(contracts: list[ContractRecord], runs: list[RunRecord]) -> s
                 f"- Workflow run: {latest_run.workflow_run_id or 'unknown'}",
                 f"- Workflow attempt: {latest_run.workflow_attempt or 'unknown'}",
                 f"- Copied files: {latest_run.copied_files or 'unknown'}",
+                f"- Targets in latest run: {latest_targets}",
             ]
         )
 
@@ -242,6 +293,7 @@ def build_home_page(contracts: list[ContractRecord], runs: list[RunRecord]) -> s
                 f"- Latest risk: {latest_contract.latest_risk}",
                 f"- Last run: {latest_contract.last_run or 'unknown'}",
                 f"- Details: [Open contract page](contracts/{latest_contract.slug}/index.md)",
+                f"- Trends: [Open trends view](trends.md)",
             ]
         )
 
@@ -249,23 +301,183 @@ def build_home_page(contracts: list[ContractRecord], runs: list[RunRecord]) -> s
 
 
 def build_contracts_index(contracts: list[ContractRecord]) -> str:
+    rows: list[str] = []
+    for contract in contracts:
+        last_run_date = to_date_only(contract.last_run)
+        risk_key = contract.latest_risk.strip().lower().replace(" ", "-")
+        rows.append(
+            "<tr "
+            f"data-risk=\"{risk_key}\" "
+            f"data-last-run=\"{last_run_date}\" "
+            f"data-contract=\"{contract.stem.lower()}\">"
+            f"<td>{contract.stem}</td>"
+            f"<td>{contract.latest_risk}</td>"
+            f"<td>{contract.last_run or 'unknown'}</td>"
+            f"<td>{contract.run_count}</td>"
+            f"<td>{contract.completeness}</td>"
+            f"<td><a href=\"./{contract.slug}/index.md\">View</a></td>"
+            "</tr>"
+        )
+
+    if not rows:
+        rows.append(
+            "<tr><td colspan=\"6\"><em>No contracts found</em></td></tr>"
+        )
+
     lines = [
         "# Contracts",
         "",
-        "| Contract | Latest Risk | Last Run | Archived Runs | Status | Details |",
-        "| --- | --- | --- | --- | --- | --- |",
+        "Use filters below to narrow by latest risk and contract run date.",
+        "",
+        "<div style=\"display:flex;gap:12px;flex-wrap:wrap;margin:12px 0;\">",
+        "  <label>Risk",
+        "    <select id=\"riskFilter\">",
+        "      <option value=\"all\">All</option>",
+        "      <option value=\"high\">HIGH</option>",
+        "      <option value=\"medium\">MEDIUM</option>",
+        "      <option value=\"low\">LOW</option>",
+        "      <option value=\"not-found\">NOT FOUND</option>",
+        "      <option value=\"unknown\">UNKNOWN</option>",
+        "    </select>",
+        "  </label>",
+        "  <label>From date",
+        "    <input id=\"fromDate\" type=\"date\" />",
+        "  </label>",
+        "  <label>To date",
+        "    <input id=\"toDate\" type=\"date\" />",
+        "  </label>",
+        "  <button id=\"resetFilters\" type=\"button\">Reset</button>",
+        "</div>",
+        "",
+        "<table>",
+        "  <thead>",
+        "    <tr>",
+        "      <th>Contract</th>",
+        "      <th>Latest Risk</th>",
+        "      <th>Last Run</th>",
+        "      <th>Archived Runs</th>",
+        "      <th>Status</th>",
+        "      <th>Details</th>",
+        "    </tr>",
+        "  </thead>",
+        "  <tbody id=\"contractsTableBody\">",
+        *rows,
+        "  </tbody>",
+        "</table>",
+        "",
+        "<p id=\"contractsResultCount\" style=\"margin-top:8px;\"></p>",
+        "",
+        "<script>",
+        "(function () {",
+        "  const riskFilter = document.getElementById('riskFilter');",
+        "  const fromDate = document.getElementById('fromDate');",
+        "  const toDate = document.getElementById('toDate');",
+        "  const reset = document.getElementById('resetFilters');",
+        "  const body = document.getElementById('contractsTableBody');",
+        "  const count = document.getElementById('contractsResultCount');",
+        "  if (!riskFilter || !fromDate || !toDate || !reset || !body || !count) return;",
+        "",
+        "  const rows = Array.from(body.querySelectorAll('tr'));",
+        "  function applyFilters() {",
+        "    const risk = riskFilter.value;",
+        "    const from = fromDate.value;",
+        "    const to = toDate.value;",
+        "    let shown = 0;",
+        "    rows.forEach((row) => {",
+        "      const rowRisk = (row.getAttribute('data-risk') || 'unknown');",
+        "      const rowDate = row.getAttribute('data-last-run') || '';",
+        "      const riskOk = risk === 'all' || rowRisk === risk;",
+        "      const fromOk = !from || (rowDate && rowDate >= from);",
+        "      const toOk = !to || (rowDate && rowDate <= to);",
+        "      const visible = riskOk && fromOk && toOk;",
+        "      row.style.display = visible ? '' : 'none';",
+        "      if (visible) shown += 1;",
+        "    });",
+        "    count.textContent = `Showing ${shown} contract(s)`;",
+        "  }",
+        "",
+        "  riskFilter.addEventListener('change', applyFilters);",
+        "  fromDate.addEventListener('change', applyFilters);",
+        "  toDate.addEventListener('change', applyFilters);",
+        "  reset.addEventListener('click', () => {",
+        "    riskFilter.value = 'all';",
+        "    fromDate.value = '';",
+        "    toDate.value = '';",
+        "    applyFilters();",
+        "  });",
+        "",
+        "  applyFilters();",
+        "})();",
+        "</script>",
     ]
 
+    return "\n".join(lines)
+
+
+def run_risk_for_contract(run: RunRecord, stem: str) -> str:
+    snapshot_dir = run.manifest_path.parent
+    scorecard = snapshot_dir / f"{stem}-final.scorecard.md"
+    if not scorecard.exists():
+        return "UNKNOWN"
+    return extract_overall_risk(scorecard)
+
+
+def build_trends_page(contracts: list[ContractRecord], runs: list[RunRecord]) -> str:
+    lines = [
+        "# Trends",
+        "",
+        "This view tracks contract risk across archived runs using scorecards saved in immutable snapshots.",
+    ]
+
+    if not contracts:
+        lines.extend(["", "_No contracts available for trend analysis._"])
+        return "\n".join(lines)
+
     for contract in contracts:
-        lines.append(
-            "| "
-            f"{contract.stem} | {contract.latest_risk} | {contract.last_run or 'unknown'} | "
-            f"{contract.run_count} | {contract.completeness} | "
-            f"[View](./{contract.slug}/index.md) |"
+        contract_runs = runs_for_contract(runs, contract.stem)
+        high_count = 0
+        medium_count = 0
+        low_count = 0
+        not_found_count = 0
+        unknown_count = 0
+        trend_rows: list[str] = []
+
+        for run in contract_runs:
+            risk = run_risk_for_contract(run, contract.stem)
+            if risk == "HIGH":
+                high_count += 1
+            elif risk == "MEDIUM":
+                medium_count += 1
+            elif risk == "LOW":
+                low_count += 1
+            elif risk == "NOT FOUND":
+                not_found_count += 1
+            else:
+                unknown_count += 1
+
+            trend_rows.append(
+                f"| {run.created_utc or 'unknown'} | {run.workflow_run_id or 'unknown'} | "
+                f"{run.workflow_attempt or 'unknown'} | {risk} |"
+            )
+
+        lines.extend(
+            [
+                "",
+                f"## {contract.stem}",
+                "",
+                f"- Latest risk: {contract.latest_risk}",
+                f"- Archived runs: {len(contract_runs)}",
+                f"- Distribution: HIGH={high_count}, MEDIUM={medium_count}, LOW={low_count}, NOT FOUND={not_found_count}, UNKNOWN={unknown_count}",
+                "",
+                "| Created UTC | Workflow Run | Attempt | Risk |",
+                "| --- | --- | --- | --- |",
+            ]
         )
 
-    if len(lines) == 4:
-        lines.append("| _No contracts found_ | - | - | - | - | - |")
+        if trend_rows:
+            lines.extend(trend_rows)
+        else:
+            lines.append("| _No runs found_ | - | - | - |")
 
     return "\n".join(lines)
 
@@ -400,6 +612,7 @@ def build_docs(
     write_text(docs_root / "index.md", build_home_page(contracts, runs))
     write_text(contracts_root / "index.md", build_contracts_index(contracts))
     write_text(docs_root / "history.md", build_history_page(runs, repo_url))
+    write_text(docs_root / "trends.md", build_trends_page(contracts, runs))
 
     for contract in contracts:
         contract_dir = contracts_root / contract.slug
