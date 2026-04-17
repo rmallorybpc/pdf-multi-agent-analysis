@@ -19,6 +19,9 @@ markdown_extensions:
   - toc:
       permalink: true
 
+extra_css:
+  - stylesheets/extra.css
+
 nav:
   - Home: index.md
   - Contracts: contracts/index.md
