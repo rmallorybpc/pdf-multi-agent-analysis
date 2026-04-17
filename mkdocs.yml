@@ -7,7 +7,6 @@ theme:
   name: material
   features:
     - navigation.tabs
-    - navigation.sections
     - content.code.copy
     - search.suggest
     - search.highlight
