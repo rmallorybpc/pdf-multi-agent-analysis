@@ -22,6 +22,28 @@ Each refinement run also snapshots those generated files into `linkedin-series-a
 
 **See a sample output:** [SS&C Services Agreement — Executive Summary](rfp-markdown/generated/SS%26C%20Services%20Agreement%20from%202024-final.executive-summary.md)
 
+## Transparency Portal (GitHub Pages)
+
+This repository includes a static transparency portal built with MkDocs and Material theme.
+It publishes a decision-first view of generated outputs (executive summary and scorecard), plus immutable run history for transparency.
+
+- Site source: `docs/`
+- Site generator: `scripts/build_site_from_manifests.py`
+- Build config: `mkdocs.yml`
+- Deploy workflow: `.github/workflows/build-and-publish-site.yml`
+
+### Local preview
+
+```bash
+python -m pip install -r requirements-dev.txt
+python scripts/build_site_from_manifests.py
+mkdocs serve
+```
+
+### Automated deployment
+
+The Pages workflow runs on successful completion of `local-multistage-refinement`, on manual dispatch, and daily on schedule.
+
 ---
 
 ## About this project

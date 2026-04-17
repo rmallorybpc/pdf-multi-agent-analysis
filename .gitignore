@@ -5,3 +5,9 @@ output/
 *.pyc
 node_modules/
 npm-debug.log*
+site/
+docs/index.md
+docs/history.md
+docs/contracts/index.md
+docs/contracts/*/
+

@@ -1,0 +1,27 @@
+site_name: PDF Multi-Agent Analysis Portal
+site_description: Transparency portal for generated contract analysis artifacts and run history.
+repo_url: https://github.com/rmallorybpc/pdf-multi-agent-analysis
+repo_name: rmallorybpc/pdf-multi-agent-analysis
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+
+plugins:
+  - search
+
+markdown_extensions:
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Contracts: contracts/index.md
+  - History: history.md
+  - About: about.md
