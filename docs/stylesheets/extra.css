@@ -17,8 +17,51 @@ body {
 .md-sidebar--primary,
 .md-sidebar--secondary,
 .md-nav__source,
-.md-header__source {
+.md-header__source,
+.md-tabs,
+.md-header {
   display: none !important;
+}
+
+.tmg-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+}
+
+.tmg-nav-secondary {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tmg-nav-secondary a {
+  font-size: 12px;
+  color: var(--tmg-charcoal);
+  text-decoration: none;
+  border: 1px solid rgba(45, 52, 54, 0.2);
+  border-radius: var(--tmg-btn-radius);
+  padding: 4px 10px;
+}
+
+.tmg-nav-secondary a:hover {
+  border-color: var(--tmg-sage);
+  color: var(--tmg-sage-hover);
+}
+
+@media (max-width: 960px) {
+  .tmg-nav {
+    height: auto;
+    padding: 10px 16px;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .tmg-nav-left {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .md-container,
@@ -41,11 +84,34 @@ body {
 .md-content__inner {
   margin: 0 !important;
   padding-top: 0 !important;
+  background: var(--tmg-white);
+  border: var(--tmg-border);
+  border-radius: var(--tmg-bento-radius);
+  padding: 24px !important;
 }
 
 .md-typeset {
   font-size: 16px !important;
   line-height: 1.7 !important;
+}
+
+.md-typeset h1 {
+  font-size: 28px !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+  color: var(--tmg-charcoal) !important;
+  margin: 0 0 8px !important;
+}
+
+.md-typeset h1:first-of-type::before {
+  content: "The Mallory Group";
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tmg-sage);
+  margin-bottom: 4px;
 }
 
 .tmg-page {

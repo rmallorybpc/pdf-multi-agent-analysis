@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block head %}
+  {{ super() }}
+  <style>
+    :root {
+      --tmg-cream:        #FDFCF0;
+      --tmg-charcoal:     #2D3436;
+      --tmg-sage:         #84A98C;
+      --tmg-sage-hover:   #6B8F74;
+      --tmg-white:        #FFFFFF;
+      --tmg-bg:           var(--tmg-cream);
+      --tmg-text:         var(--tmg-charcoal);
+      --tmg-accent:       var(--tmg-sage);
+      --tmg-surface:      var(--tmg-white);
+      --tmg-success:      #2E8540;
+      --tmg-warning:      #C47F00;
+      --tmg-error:        #B00020;
+      --tmg-border:       1px solid rgba(45, 52, 54, 0.12);
+      --tmg-border-hover: 1px solid rgba(132, 169, 140, 0.50);
+      --tmg-bento-radius: 16px;
+      --tmg-nav-radius:   8px;
+      --tmg-btn-radius:   8px;
+      --tmg-gap:          24px;
+      --tmg-gap-sm:       12px;
+      --tmg-shadow-sm:    0 1px 3px rgba(45, 52, 54, 0.08);
+      --tmg-shadow-md:    0 2px 8px rgba(45, 52, 54, 0.10);
+    }
+  </style>
+{% endblock %}
+
+{% block header %}
+<nav class="tmg-nav" role="banner">
+  <div class="tmg-nav-left">
+    <div class="tmg-logo" aria-label="The Mallory Group">
+      <span>TM</span>
+      <div class="tmg-logo-divider" aria-hidden="true"></div>
+      <span>G</span>
+    </div>
+    <div class="tmg-nav-secondary" aria-label="Page links">
+      {% for item in nav %}
+        <a href="{{ item.url | url }}">{{ item.title }}</a>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="tmg-dropdown-wrap">
+    <button class="tmg-dropdown-btn" id="tmgDdBtn"
+            aria-haspopup="true" aria-expanded="false" aria-controls="tmgDdMenu">
+      TMG Tool Suite
+      <svg class="tmg-chevron" viewBox="0 0 12 12" fill="none" width="12" height="12" aria-hidden="true">
+        <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="tmg-dropdown-menu" id="tmgDdMenu" role="menu">
+      <a href="https://rmallorybpc.github.io/pdf-multi-agent-analysis/" target="_blank" rel="noreferrer" role="menuitem">PDF Multi-Agent Analysis</a>
+      <a href="https://rmallorybpc.github.io/housing-market-intel/" target="_blank" rel="noreferrer" role="menuitem">Housing Market Intel</a>
+      <a href="https://rmallorybpc.github.io/real-estate-report/" target="_blank" rel="noreferrer" role="menuitem">Real Estate Report</a>
+      <a href="https://rmallorybpc.github.io/nflanalysis/dashboard/src/" target="_blank" rel="noreferrer" role="menuitem">NFL Analysis</a>
+      <a href="https://rmallorybpc.github.io/recipes/" target="_blank" rel="noreferrer" role="menuitem">Recipe Book</a>
+    </div>
+  </div>
+</nav>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <script>
+  (function () {
+    const btn  = document.getElementById('tmgDdBtn');
+    const menu = document.getElementById('tmgDdMenu');
+    if (!btn || !menu) return;
+
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      const isOpen = menu.classList.toggle('open');
+      btn.classList.toggle('open', isOpen);
+      btn.setAttribute('aria-expanded', String(isOpen));
+    });
+
+    document.addEventListener('click', function () {
+      menu.classList.remove('open');
+      btn.classList.remove('open');
+      btn.setAttribute('aria-expanded', 'false');
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        menu.classList.remove('open');
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+        btn.focus();
+      }
+    });
+  })();
+  </script>
+{% endblock %}

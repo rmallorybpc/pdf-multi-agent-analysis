@@ -1,0 +1,260 @@
+/* ============================================================
+   TMG Design System — The Mallory Group
+   dist/tmg.css — v2.0
+
+   CDN usage (add to every repo <head>):
+   <link rel="stylesheet" href="https://rmallorybpc.github.io/tmg-brand-guide/dist/tmg.css">
+
+   Google Font (add above the CSS link):
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
+   ============================================================ */
+
+
+/* ── 1. Tokens ─────────────────────────────────────────────── */
+:root {
+  /* Palette */
+  --tmg-cream:        #FDFCF0;
+  --tmg-charcoal:     #2D3436;
+  --tmg-sage:         #84A98C;
+  --tmg-sage-hover:   #6B8F74;
+  --tmg-white:        #FFFFFF;
+
+  /* Semantic */
+  --tmg-bg:           var(--tmg-cream);
+  --tmg-text:         var(--tmg-charcoal);
+  --tmg-accent:       var(--tmg-sage);
+  --tmg-surface:      var(--tmg-white);
+
+  /* Status */
+  --tmg-success:      #2E8540;
+  --tmg-warning:      #C47F00;
+  --tmg-error:        #B00020;
+
+  /* Borders */
+  --tmg-border:       1px solid rgba(45, 52, 54, 0.12);
+  --tmg-border-hover: 1px solid rgba(132, 169, 140, 0.50);
+
+  /* Radii */
+  --tmg-bento-radius: 16px;
+  --tmg-nav-radius:   8px;
+  --tmg-btn-radius:   8px;
+
+  /* Spacing */
+  --tmg-gap:          24px;
+  --tmg-gap-sm:       12px;
+
+  /* Elevation */
+  --tmg-shadow-sm:    0 1px 3px rgba(45, 52, 54, 0.08);
+  --tmg-shadow-md:    0 2px 8px rgba(45, 52, 54, 0.10);
+}
+
+
+/* ── 2. Reset & base ───────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background: var(--tmg-bg);
+  color: var(--tmg-text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(132, 169, 140, 0.40);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0;
+  margin: -1px; overflow: hidden; clip: rect(0,0,0,0);
+  white-space: nowrap; border: 0;
+}
+
+
+/* ── 3. Typography ─────────────────────────────────────────── */
+.tmg-eyebrow    { font-size: 13px;  font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tmg-sage); margin: 0 0 4px; }
+.tmg-h1         { font-size: 28px;  font-weight: 500; line-height: 1.3; color: var(--tmg-charcoal); margin: 0 0 8px; }
+.tmg-h2         { font-size: 20px;  font-weight: 500; line-height: 1.3; color: var(--tmg-charcoal); margin: 0 0 6px; }
+.tmg-h3         { font-size: 16px;  font-weight: 500; line-height: 1.3; color: var(--tmg-charcoal); margin: 0 0 6px; }
+.tmg-body       { font-size: 16px;  font-weight: 400; line-height: 1.7; color: var(--tmg-charcoal); }
+.tmg-body-sm    { font-size: 13px;  font-weight: 400; color: var(--tmg-charcoal); }
+.tmg-label      { font-size: 13px;  font-weight: 500; color: var(--tmg-charcoal); }
+.tmg-label-caps { font-size: 12px;  font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: rgba(45,52,54,0.50); }
+.tmg-metric     { font-size: 28px;  font-weight: 500; color: var(--tmg-charcoal); }
+.tmg-text-muted { color: rgba(45, 52, 54, 0.55); }
+.tmg-text-accent{ color: var(--tmg-sage); }
+
+
+/* ── 4. Navigation ─────────────────────────────────────────── */
+.tmg-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--tmg-white); border-bottom: var(--tmg-border);
+  padding: 0 24px; height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.tmg-logo {
+  display: flex; align-items: center;
+  font-size: 17px; font-weight: 500; letter-spacing: 0.02em;
+  color: var(--tmg-charcoal); text-decoration: none;
+}
+
+.tmg-logo-divider {
+  width: 2px; height: 20px;
+  background: var(--tmg-sage); border-radius: 2px; margin: 0 1px;
+}
+
+.tmg-dropdown-wrap { position: relative; }
+
+.tmg-dropdown-btn {
+  background: transparent; border: 1px solid rgba(45,52,54,0.20);
+  border-radius: var(--tmg-btn-radius); padding: 7px 14px;
+  font-size: 13px; font-weight: 500; color: var(--tmg-charcoal);
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; transition: background 0.15s;
+}
+.tmg-dropdown-btn:hover,
+.tmg-dropdown-btn.open          { background: rgba(132,169,140,0.10); }
+.tmg-dropdown-btn:focus-visible { outline: 3px solid rgba(132,169,140,0.35); outline-offset: 2px; }
+
+.tmg-chevron { transition: transform 0.2s; flex-shrink: 0; }
+.tmg-dropdown-btn.open .tmg-chevron { transform: rotate(180deg); }
+
+.tmg-dropdown-menu {
+  display: none; position: absolute; right: 0; top: calc(100% + 6px);
+  background: var(--tmg-white); border: var(--tmg-border);
+  border-radius: 10px; padding: 6px; min-width: 220px;
+  z-index: 200; box-shadow: var(--tmg-shadow-md);
+}
+.tmg-dropdown-menu.open { display: block; }
+
+.tmg-dropdown-menu a {
+  display: block; padding: 8px 12px; border-radius: 6px;
+  font-size: 13px; color: var(--tmg-charcoal); text-decoration: none;
+  transition: background 0.12s, color 0.12s;
+}
+.tmg-dropdown-menu a:hover          { background: rgba(132,169,140,0.12); color: var(--tmg-sage-hover); }
+.tmg-dropdown-menu a:focus-visible  { outline: 2px solid var(--tmg-sage); outline-offset: -2px; border-radius: 6px; }
+
+
+/* ── 5. Layout ─────────────────────────────────────────────── */
+.tmg-page {
+  background: var(--tmg-bg);
+  min-height: 100vh;
+  padding: var(--tmg-gap);
+}
+
+.tmg-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.tmg-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--tmg-gap);
+}
+
+.tmg-page-header { margin-bottom: var(--tmg-gap); }
+.tmg-page-title  { font-size: 28px; font-weight: 500; color: var(--tmg-charcoal); margin: 0 0 8px; line-height: 1.3; }
+.tmg-page-desc   { font-size: 15px; color: rgba(45,52,54,0.60); margin: 0; }
+
+.tmg-footer {
+  padding: 20px 24px; text-align: center;
+  font-size: 13px; color: rgba(45,52,54,0.50);
+  border-top: var(--tmg-border); margin-top: var(--tmg-gap);
+}
+
+
+/* ── 6. Cards ──────────────────────────────────────────────── */
+.tmg-card {
+  background: var(--tmg-white);
+  border: var(--tmg-border);
+  border-radius: var(--tmg-bento-radius);
+  padding: 20px;
+}
+
+.tmg-card-wide {
+  background: var(--tmg-white);
+  border: var(--tmg-border);
+  border-radius: var(--tmg-bento-radius);
+  padding: 24px;
+  grid-column: 1 / -1;
+}
+
+.tmg-card-label { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(45,52,54,0.50); margin: 0 0 8px; }
+.tmg-card-title { font-size: 16px; font-weight: 500; color: var(--tmg-charcoal); margin: 0 0 14px; }
+.tmg-card-value { font-size: 28px; font-weight: 500; color: var(--tmg-charcoal); margin: 0 0 4px; }
+.tmg-card-sub   { font-size: 12px; color: var(--tmg-sage); margin: 0; }
+.tmg-trend-up   { color: var(--tmg-success); font-size: 13px; font-weight: 500; }
+.tmg-trend-down { color: var(--tmg-error);   font-size: 13px; font-weight: 500; }
+
+
+/* ── 7. Buttons ────────────────────────────────────────────── */
+.tmg-btn {
+  background: var(--tmg-charcoal); color: var(--tmg-white);
+  border: none; border-radius: var(--tmg-btn-radius);
+  padding: 10px 16px; font-size: 13px; font-weight: 500;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; transition: background 0.15s;
+}
+.tmg-btn:hover          { background: #3D4446; }
+.tmg-btn:active         { transform: scale(0.98); }
+.tmg-btn:focus-visible  { outline: 3px solid rgba(45,52,54,0.20); outline-offset: 2px; }
+
+.tmg-btn-ghost {
+  background: transparent; color: var(--tmg-charcoal);
+  border: 1px solid rgba(45,52,54,0.20); border-radius: var(--tmg-btn-radius);
+  padding: 10px 16px; font-size: 13px; font-weight: 500;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; transition: border-color 0.15s, color 0.15s;
+}
+.tmg-btn-ghost:hover         { border-color: var(--tmg-sage); color: var(--tmg-sage-hover); }
+.tmg-btn-ghost:active        { transform: scale(0.98); }
+.tmg-btn-ghost:focus-visible { outline: 3px solid rgba(132,169,140,0.35); outline-offset: 2px; }
+
+
+/* ── 8. Tables ─────────────────────────────────────────────── */
+.tmg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+.tmg-table th {
+  background: rgba(132,169,140,0.15); color: var(--tmg-charcoal);
+  font-weight: 500; font-size: 12px; text-transform: uppercase;
+  letter-spacing: 0.04em; padding: 9px 14px; text-align: left;
+  border-bottom: 1px solid rgba(132,169,140,0.25);
+}
+
+.tmg-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(45,52,54,0.07);
+  color: var(--tmg-charcoal);
+}
+
+.tmg-table tr:last-child td { border-bottom: none; }
+.tmg-table tr:hover td      { background: rgba(132,169,140,0.04); }
+
+
+/* ── 9. Form inputs ────────────────────────────────────────── */
+.tmg-input,
+.tmg-select,
+.tmg-textarea {
+  width: 100%; background: var(--tmg-white); color: var(--tmg-charcoal);
+  border: var(--tmg-border); border-radius: var(--tmg-btn-radius);
+  padding: 9px 12px; font-size: 14px; font-family: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box;
+}
+.tmg-input:focus,
+.tmg-select:focus,
+.tmg-textarea:focus {
+  outline: none; border-color: var(--tmg-sage);
+  box-shadow: 0 0 0 3px rgba(132,169,140,0.15);
+}
+.tmg-input::placeholder { color: rgba(45,52,54,0.35); }
+
+.tmg-field-label {
+  display: block; font-size: 13px; font-weight: 500;
+  color: var(--tmg-charcoal); margin-bottom: 6px;
+}

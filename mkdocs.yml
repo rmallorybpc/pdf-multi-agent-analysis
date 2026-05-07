@@ -5,6 +5,7 @@ repo_name: rmallorybpc/pdf-multi-agent-analysis
 
 theme:
   name: material
+  custom_dir: docs/overrides
   features:
     - navigation.tabs
     - content.code.copy
@@ -20,6 +21,7 @@ markdown_extensions:
       permalink: true
 
 extra_css:
+  - stylesheets/tmg.css
   - stylesheets/extra.css
 
 nav:
