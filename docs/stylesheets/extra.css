@@ -8,6 +8,51 @@
   }
 }
 
+/* TMG runtime overrides to suppress MkDocs chrome and surface the TMG system. */
+body {
+  background: var(--tmg-bg) !important;
+  color: var(--tmg-text) !important;
+}
+
+.md-sidebar--primary,
+.md-sidebar--secondary,
+.md-nav__source,
+.md-header__source {
+  display: none !important;
+}
+
+.md-container,
+.md-main {
+  display: block !important;
+}
+
+.md-main__inner {
+  display: block !important;
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  padding: 24px !important;
+  height: auto !important;
+}
+
+.md-content {
+  margin: 0 !important;
+}
+
+.md-content__inner {
+  margin: 0 !important;
+  padding-top: 0 !important;
+}
+
+.md-typeset {
+  font-size: 16px !important;
+  line-height: 1.7 !important;
+}
+
+.tmg-page {
+  padding: 0 !important;
+  min-height: auto !important;
+}
+
 /*
 TMG cleanup: keep conflicting theme overrides disabled.
 body { background: #fff; color: #000; font-family: sans-serif; }
